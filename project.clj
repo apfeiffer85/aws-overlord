@@ -9,9 +9,12 @@
                  [metosin/compojure-api "0.16.4"]
                  [metosin/ring-http-response "0.5.2"]
                  [metosin/ring-swagger-ui "2.0.17"]
-                 [org.clojure/tools.logging "0.2.4"]]
+                 [org.clojure/tools.logging "0.2.4"]
+                 ;[com.datomic/datomic-pro "0.9.5067"]
+                 [amazonica "0.2.30" :exclusions [joda-time]]]
 
   :main aws-overlord.core
   :uberjar-name "aws-overlord.jar"
-
-  :profiles {:uberjar {:resource-paths ["swagger-ui"]}})
+  :profiles {:uberjar {:resource-paths ["swagger-ui"]}
+             :dev {:dependencies [[javax.servlet/servlet-api "2.5"]
+                                  [org.slf4j/slf4j-simple "1.7.7"]]}})

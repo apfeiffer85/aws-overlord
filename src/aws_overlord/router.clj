@@ -14,7 +14,7 @@
 
 (schema/defschema Account
                   {:key-id String
-                   :key-secret String})
+                   :access-key String})
 
 (schema/defschema Member
                   {:id String})
@@ -31,12 +31,11 @@
 
 (schema/defschema TeamUpdate
                   {(schema/optional-key :account) {:key-secret String}
-                   (schema/optional-key :lead) Member
-                   (schema/optional-key :members) [Member]})
+                   (schema/optional-key :lead) Member})
 
 (defrecord Router [])
 
-(defn- api-routes [api]
+(defn- api-routes [router]
   (routes/with-routes
 
     (swaggered
@@ -44,27 +43,28 @@
       :description "Application management operations"
 
       (POST*
-        "/apps/:name" []
+        "/applications/:name" []
         :summary "Creates an application"
         :path-params [name :- String]
         :body [app ApplicationCreation]
         (log/info "Creating application" name)
-        {})
+        {:status 202})
 
       (GET*
-        "/apps/:name" []
+        "/applications/:name" []
         :summary "Retrieves an application"
         :path-params [name :- String]
         :return ApplicationView
         (log/info "Retrieving application" name)
-        {:body {:name name}})
+        {:status 200
+         :body {:name name}})
 
       (DELETE*
-        "/apps/:name" []
+        "/applications/:name" []
         :summary "Deletes an application"
         :path-params [name :- String]
         (log/info "Deleting application" name)
-        {}))
+        {:status 204}))
 
     (swaggered
       "Teams"
@@ -76,7 +76,7 @@
         :path-params [name :- String]
         :body [team TeamCreation]
         (log/info "Creating team" name)
-        {})
+        {:status 202})
 
       (GET*
         "/teams/:name" []
@@ -84,25 +84,48 @@
         :path-params [name :- String]
         :return TeamView
         (log/info "Retrieving team" name)
-        {:body {:name name
+        {:status 200
+         :body {:name name
                 :lead {:id "alice"}
                 :members [{:id "bob"}
                           {:id "charlie"}]}})
 
-      (PUT*
+      (PATCH*
         "/teams/:name" []
         :summary "Updates a team"
         :path-params [name :- String]
         :body [team TeamUpdate]
         (log/info "Updating team" name)
-        {}))))
+        {:status 202})
 
-(defn new-app [api]
+      (DELETE*
+        "/teams/:name" []
+        :summary "Deletes a team"
+        :path-params [name :- String]
+        (log/info "Deleting team" name)
+        {:status 202})
+
+      (PUT*
+        "/teams/:name/members/:member-id" []
+        :summary "Updates a team"
+        :path-params [name :- String, member-id :- String]
+        :body [member Member]
+        (log/info "Adding member" member-id "to team" name)
+        {:status 202})
+
+      (DELETE*
+        "/teams/:name/members/:member-id" []
+        :summary "Deletes a member from a team"
+        :path-params [name :- String, member-id :- String]
+        (log/info "Removing member" member-id "from team" name)
+        {:status 202}))))
+
+(defn new-app [router]
   (api-middleware
     (routes/with-routes
       (swagger-ui)
       (swagger-docs :title "Overlord")
-      (api-routes api))))
+      (api-routes router))))
 
 (defn ^Router new-router []
   (map->Router {}))
