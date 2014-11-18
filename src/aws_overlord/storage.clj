@@ -25,17 +25,22 @@
     (dissoc this :connection)))
 
 (defn insert [storage entity]
-  (d/transact (:connection storage) [(assoc entity :db/id -1)]))
+  (let [{:keys [connection]} storage]
+    (log/info "Inserting entity" entity)
+    (d/transact connection [entity])
+    (log/info "Successfully inserted entity" entity)))
 
 (defn account-by-name [storage name]
-  (let [connection (:connection storage)
+  (let [{:keys [connection]} storage
         db (db connection)]
-    (log/info "Database is" db)
-    (first (q '[:find ?account
-                :in $ ?name
-                :where [?account :account/name ?name]]
-              db
-              name))))
+    (log/info "Fetching account" name)
+    (let [entity-id (q '[:find ?account .
+                         :in $ ?name
+                         :where [?account :account/name ?name]]
+                       db
+                       name)]
+      (when entity-id
+        (d/entity db entity-id)))))
 
 (defn ^Storage new-storage [url]
   (map->Storage {:url url}))
