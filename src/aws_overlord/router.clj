@@ -97,12 +97,20 @@
         (log/info "Deleting account" name)
         {:status 202}))))
 
+(defn- exception-logging [handler]
+  (fn [request]
+    (try
+      (handler request)
+      (catch Exception e
+        (log/error e "Caught exception in web-tier")
+        (throw e)))))
+
 (defn new-app [router]
   (api-middleware
     (routes/with-routes
       (swagger-ui)
       (swagger-docs :title "Overlord")
-      (api-routes router))))
+      (exception-logging (api-routes router)))))
 
 (defn ^Router new-router []
   (map->Router {}))

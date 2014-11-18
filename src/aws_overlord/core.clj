@@ -17,7 +17,7 @@
     (component/system-map
       :enforcer (using (new-enforcer aws-settings) [:scheduler :storage])
       :http-server (using (new-http-server http-port) [:router])
-      :router (new-router)
+      :router (using (new-router) [:storage])
       :storage (new-storage datomic-url)
       :scheduler (new-scheduler))))
 

@@ -14,9 +14,6 @@
                  ; logging
                  [org.clojure/tools.logging "0.2.4"]
                  [org.slf4j/slf4j-api "1.7.7"]
-                 [org.slf4j/jul-to-slf4j "1.7.7"]
-                 [org.apache.logging.log4j/log4j-core "2.1"]
-                 [org.apache.logging.log4j/log4j-slf4j-impl "2.1"]
                  ; amazon aws (if upgrading, also check the joda-time version)
                  [amazonica "0.2.30" :exclusions [joda-time commons-logging]]
                  [joda-time "2.5"]
@@ -35,5 +32,9 @@
                    :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
                                                     :creds :gpg}}}
 
+             :prod {:dependencies [[org.slf4j/jul-to-slf4j "1.7.7"]
+                                   [org.apache.logging.log4j/log4j-core "2.1"]
+                                   [org.apache.logging.log4j/log4j-slf4j-impl "2.1"]]}
+
              :dev {:dependencies [[javax.servlet/servlet-api "2.5"]
-                                  [org.slf4j/slf4j-simple "1.7.7"]]}})
+                                  [org.slf4j/slf4j-nop "1.7.7"]]}})
