@@ -1,7 +1,15 @@
-(ns aws-overlord.schema)
+(ns aws-overlord.schema
+  (:require [datomic.api]))
 
 (def account
   [{:db/id #db/id[:db.part/db]
+    :db/ident :account/name
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "An account's name"
+    :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
     :db/ident :account/key-id
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
@@ -13,42 +21,40 @@
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
     :db/doc "An account's access key"
-    :db.install/_attribute :db.part/db}])
-
-(def team
-  [{:db/id #db/id[:db.part/db]
-    :db/ident :team/name
-    :db/valueType :db.type/string
-    :db/cardinality :db.cardinality/one
-    :db/doc "A team's name"
     :db.install/_attribute :db.part/db}
 
    {:db/id #db/id[:db.part/db]
-    :db/ident :team/lead
-    :db/valueType :db.type/ref
-    :db/cardinality :db.cardinality/one
-    :db/doc "A team's name"
-    :db.install/_attribute :db.part/db}
-
-   {:db/id #db/id[:db.part/db]
-    :db/ident :team/members
+    :db/ident :account/networks
     :db/valueType :db.type/ref
     :db/cardinality :db.cardinality/many
-    :db/doc "A team's members"
-    :db.install/_attribute :db.part/db}])
+    :db/doc "An account's networks"
+    :db.install/_attribute :db.part/db}
 
-(def member
-  [{:db/id #db/id[:db.part/db]
-    :db/ident :member/id
+   {:db/id #db/id[:db.part/db]
+    :db/ident :account/owner-email
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
-    :db/doc "A member's id"
+    :db/doc "An account's owner's email"
     :db.install/_attribute :db.part/db}])
 
-(def application
+(def network
   [{:db/id #db/id[:db.part/db]
-    :db/ident :application/name
+    :db/ident :network/region
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
-    :db/doc "An application's name"
+    :db/doc "A network's region"
+    :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
+    :db/ident :network/vpc
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "A network's vpc"
+    :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
+    :db/ident :network/subnets
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/many
+    :db/doc "A network's subnets"
     :db.install/_attribute :db.part/db}])

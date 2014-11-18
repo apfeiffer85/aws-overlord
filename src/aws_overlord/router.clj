@@ -4,120 +4,97 @@
             [compojure.api.middleware :refer :all]
             [compojure.api.routes :as routes]
             [ring.util.http-response :refer :all]
-            [schema.core :as schema]))
+            [schema.core :as s]
+            [aws-overlord.storage :refer [insert account-by-name]]
+            [aws-overlord.mapping :refer :all]))
 
-(schema/defschema ApplicationView
-                  {:name String})
+(def ^:private opt s/optional-key)
 
-(schema/defschema ApplicationCreation
-                  {})
+(s/defschema AccountView
+             {:name String
+              :networks [{:region String
+                          :vpc String
+                          :subnets [{:availability-zone String
+                                     :mask String}]}]
+              :owner-email String})
 
-(schema/defschema Account
-                  {:key-id String
-                   :access-key String})
+(s/defschema AccountCreation
+             {:credentials {:key-id String
+                            :access-key String}
+              :networks [{:region String
+                          :vpc String
+                          :subnets [{:availability-zone String
+                                     :mask String}]}]
+              :owner-email String})
 
-(schema/defschema Member
-                  {:id String})
+(s/defschema AccountUpdate
+             {:credentials {:access-key String}
+              :networks [{:region String
+                          :vpc String
+                          :subnets [{:availability-zone String
+                                     :mask String}]}]
+              :owner-email String})
 
-(schema/defschema TeamView
-                  {:name String
-                   :lead Member
-                   :members [Member]})
+(s/defschema AccountPatch
+             {(opt :credentials) {(opt :access-key) String}
+              (opt :networks) [{(opt :region) String
+                                (opt :vpc) String
+                                (opt :subnets) [{(opt :availability-zone) String
+                                                 (opt :mask) String}]}]
+              (opt :owner-email) String})
 
-(schema/defschema TeamCreation
-                  {:account Account
-                   :lead Member
-                   (schema/optional-key :members) [Member]})
-
-(schema/defschema TeamUpdate
-                  {(schema/optional-key :account) {:key-secret String}
-                   (schema/optional-key :lead) Member})
-
-(defrecord Router [])
+(defrecord Router [storage])
 
 (defn- api-routes [router]
   (routes/with-routes
 
     (swaggered
-      "Applications"
-      :description "Application management operations"
+      "Accounts"
+      :description "Account management operations"
 
       (POST*
-        "/applications/:name" []
-        :summary "Creates an application"
+        "/accounts/:name" []
+        :summary "Configures an account"
         :path-params [name :- String]
-        :body [app ApplicationCreation]
-        (log/info "Creating application" name)
-        {:status 202})
+        :body [account AccountCreation]
+        (log/info "Configuring account" name)
+        (let [{:keys [storage]} router]
+          (insert storage (account-to-db (assoc account :name name)))
+          {:status 202}))
 
       (GET*
-        "/applications/:name" []
-        :summary "Retrieves an application"
+        "/accounts/:name" []
+        :summary "Retrieves an account"
         :path-params [name :- String]
-        :return ApplicationView
-        (log/info "Retrieving application" name)
-        {:status 200
-         :body {:name name}})
-
-      (DELETE*
-        "/applications/:name" []
-        :summary "Deletes an application"
-        :path-params [name :- String]
-        (log/info "Deleting application" name)
-        {:status 204}))
-
-    (swaggered
-      "Teams"
-      :description "Team management operations"
-
-      (POST*
-        "/teams/:name" []
-        :summary "Creates a team"
-        :path-params [name :- String]
-        :body [team TeamCreation]
-        (log/info "Creating team" name)
-        {:status 202})
-
-      (GET*
-        "/teams/:name" []
-        :summary "Retrieves a team"
-        :path-params [name :- String]
-        :return TeamView
-        (log/info "Retrieving team" name)
-        {:status 200
-         :body {:name name
-                :lead {:id "alice"}
-                :members [{:id "bob"}
-                          {:id "charlie"}]}})
-
-      (PATCH*
-        "/teams/:name" []
-        :summary "Updates a team"
-        :path-params [name :- String]
-        :body [team TeamUpdate]
-        (log/info "Updating team" name)
-        {:status 202})
-
-      (DELETE*
-        "/teams/:name" []
-        :summary "Deletes a team"
-        :path-params [name :- String]
-        (log/info "Deleting team" name)
-        {:status 202})
+        :return (s/maybe AccountView)
+        (log/info "Retrieving account" name)
+        (let [{:keys [storage]} router
+              account (account-by-name storage name)]
+          (if account
+            {:status 200 :body (account-from-db account)}
+            {:status 404})))
 
       (PUT*
-        "/teams/:name/members/:member-id" []
-        :summary "Updates a team"
-        :path-params [name :- String, member-id :- String]
-        :body [member Member]
-        (log/info "Adding member" member-id "to team" name)
+        "/accounts/:name" []
+        :summary "Updates an account"
+        :path-params [name :- String]
+        :body [account AccountUpdate]
+        (log/info "Updating account" name)
+        {:status 202})
+
+      (PATCH*
+        "/accounts/:name" []
+        :summary "Updates an account"
+        :path-params [name :- String]
+        :body [account AccountPatch]
+        (log/info "Patching account" name)
         {:status 202})
 
       (DELETE*
-        "/teams/:name/members/:member-id" []
-        :summary "Deletes a member from a team"
-        :path-params [name :- String, member-id :- String]
-        (log/info "Removing member" member-id "from team" name)
+        "/accounts/:name" []
+        :summary "Deletes an account"
+        :path-params [name :- String]
+        (log/info "Deleting account" name)
         {:status 202}))))
 
 (defn new-app [router]
