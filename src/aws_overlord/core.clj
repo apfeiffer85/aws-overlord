@@ -13,9 +13,9 @@
   (edn/read-string (slurp (or config-file (io/resource "config.edn")))))
 
 (defn- new-system [config]
-  (let [{:keys [http-port datomic-url]} config]
+  (let [{:keys [http-port datomic-url aws-settings]} config]
     (component/system-map
-      :enforcer (using (new-enforcer) [:scheduler :storage])
+      :enforcer (using (new-enforcer aws-settings) [:scheduler :storage])
       :http-server (using (new-http-server http-port) [:router])
       :router (new-router)
       :storage (new-storage datomic-url)

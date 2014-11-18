@@ -1,5 +1,6 @@
 (ns aws-overlord.scheduler
-  (:require [com.stuartsierra.component :as component]
+  (:require [clojure.tools.logging :as log]
+            [com.stuartsierra.component :as component]
             [overtone.at-at :as at]))
 
 (defrecord Scheduler [pool]
@@ -18,5 +19,12 @@
 (defn ^Scheduler new-scheduler []
   (map->Scheduler {}))
 
+(defn logging-execution [fun]
+  (fn []
+      (try
+        (fun)
+        (catch Exception e
+          (log/error "Uncatched exception during job execution!" e)))))
+
 (defn schedule-with [^Scheduler this & {:keys [function every]}]
-  (at/every every function (:pool this)))
+  (at/every every (logging-execution function) (:pool this)))
