@@ -7,5 +7,5 @@
 (defn list-users [settings]
   (iam/list-users settings))
 
-(defn list-access-keys [settings user-name]
-  (iam/list-access-keys settings :user-name user-name))
+(defn list-groups-for-user [settings user-name]
+  (iam/list-groups-for-user settings :user-name user-name))

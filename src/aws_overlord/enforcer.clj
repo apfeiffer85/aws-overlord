@@ -7,11 +7,20 @@
 (defn enforce-aws-settings [this]
   (log/info "Starting new enforcer run...")
   (doseq [account [(:aws-settings this)]]
-    (doseq [user (aws/list-users account)]
-      (let [user-name (:user-name user)
-            keys (aws/list-access-keys account user-name)]
-        (log/info "User" user-name "keys:" keys)))))
+    ; for every aws account to manage...
 
+    ; TODO check for configured IAM groups, roles and policies (admin, owner)
+    ; TODO check that overlord and owner user are in their special groups (admin, owner)
+    ; TODO check that no other users are in the special groups
+    ; TODO check that users are only in groups and have no direct policies
+
+    ; TODO check setup of VPC
+    ; TODO check setup of subnets
+    ; TODO check setup for NAT/VPN?
+
+    (doseq [user (aws/list-users account)]
+      (log/info "User" (:user-name user) "groups:"
+                (map :group-name (aws/list-groups-for-user account (:user-name user)))))))
 
 (defrecord Enforcer [scheduler storage aws-settings]
   component/Lifecycle
