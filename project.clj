@@ -10,14 +10,15 @@
                  [metosin/ring-http-response "0.5.2"]
                  [metosin/ring-swagger-ui "2.0.17"]
                  [org.clojure/tools.logging "0.2.4"]
-                 [amazonica "0.2.30" :exclusions [joda-time]]]
+                 [amazonica "0.2.30" :exclusions [joda-time]]
+                 [joda-time "2.5"]]
 
   :main aws-overlord.core
   :uberjar-name "aws-overlord.jar"
   :profiles {:uberjar {:resource-paths ["swagger-ui"]}
 
-             :free {:dependencies [[com.datomic/datomic-free "0.9.5067"]]}
-             :pro {:dependencies [[com.datomic/datomic-pro "0.9.5067"]]
+             :free {:dependencies [[com.datomic/datomic-free "0.9.5067" :exclusions [joda-time]]]}
+             :pro {:dependencies [[com.datomic/datomic-pro "0.9.5067" :exclusions [joda-time]]]
                    :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
                                                     :creds :gpg}}}
 
