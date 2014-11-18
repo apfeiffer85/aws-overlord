@@ -21,7 +21,7 @@
   (log/info "Mapping network" network "from db entity")
   {:region (get-in network [:network/region])
    :vpc (get-in network [:network/vpc])
-   :subnets (map subnet-from-db (get-in network [:subnets]))})
+   :subnets (map subnet-from-db (get-in network [:network/subnets]))})
 
 (defn account-to-db [account]
   (log/info "Mapping account" account "to db entity")

@@ -1,0 +1,41 @@
+{
+    "owner-email": "willi.schoenborn@zalando.de",
+    "networks": [
+        {
+            "region": "eu-west-1",
+            "vpc": "10.17.0.0/19",
+            "subnets": [
+                {
+                    "availability-zone": "a",
+                    "mask": "10.17.1.0/17"
+                },
+                {
+                    "availability-zone": "b",
+                    "mask": "10.17.2.0/17"
+                },
+                {
+                    "availability-zone": "c",
+                    "mask": "10.17.3.0/17"
+                }
+            ]
+        },
+        {
+            "region": "eu-central-1",
+            "vpc": "10.18.0.0/19",
+            "subnets": [
+                {
+                    "availability-zone": "a",
+                    "mask": "10.18.1.0/17"
+                },
+                {
+                    "availability-zone": "b",
+                    "mask": "10.18.2.0/17"
+                }
+            ]
+        }
+    ],
+    "credentials": {
+        "key-id": "foo",
+        "access-key": "bar"
+    }
+}

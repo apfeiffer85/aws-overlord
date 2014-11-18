@@ -3,7 +3,7 @@
 
 (def account
   [{:db/id #db/id[:db.part/db]
-    :db/ident :account/name
+    :db/ident :account/name ; TODO unique!
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
     :db/doc "An account's name"
@@ -25,6 +25,7 @@
 
    {:db/id #db/id[:db.part/db]
     :db/ident :account/networks
+    :db/isComponent true
     :db/valueType :db.type/ref
     :db/cardinality :db.cardinality/many
     :db/doc "An account's networks"
@@ -54,6 +55,7 @@
 
    {:db/id #db/id[:db.part/db]
     :db/ident :network/subnets
+    :db/isComponent true
     :db/valueType :db.type/ref
     :db/cardinality :db.cardinality/many
     :db/doc "A network's subnets"

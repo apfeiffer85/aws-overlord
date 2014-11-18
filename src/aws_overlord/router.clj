@@ -58,15 +58,16 @@
         :path-params [name :- String]
         :body [account AccountCreation]
         (log/info "Configuring account" name)
-        (let [{:keys [storage]} router]
-          (insert storage (account-to-db (assoc account :name name)))
+        (let [{:keys [storage]} router
+              named-account (assoc account :name name)]
+          (insert storage (account-to-db named-account))
           {:status 202}))
 
       (GET*
         "/accounts/:name" []
         :summary "Retrieves an account"
         :path-params [name :- String]
-        :return (s/maybe AccountView)
+        :return AccountView
         (log/info "Retrieving account" name)
         (let [{:keys [storage]} router
               account (account-by-name storage name)]
