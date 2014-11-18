@@ -33,6 +33,7 @@
                                                     :creds :gpg}}}
 
              :prod {:dependencies [[org.slf4j/jul-to-slf4j "1.7.7"]
+                                   [org.slf4j/jcl-over-slf4j "1.7.7"]
                                    [org.apache.logging.log4j/log4j-core "2.1"]
                                    [org.apache.logging.log4j/log4j-slf4j-impl "2.1"]]}
 
