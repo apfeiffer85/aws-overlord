@@ -18,17 +18,23 @@
           (let [connection (d/connect url)]
             (when new
               (log/info "Creating schema")
-              (d/transact connection (concat schema/account schema/network schema/subnet)))
+              (deref (d/transact connection (concat schema/account schema/network schema/subnet))))
             (assoc this :connection connection))))))
 
   (stop [this]
     (dissoc this :connection)))
 
-(defn insert [storage entity]
+(defn insert-account [storage account]
   (let [{:keys [connection]} storage]
-    (log/info "Inserting entity" entity)
-    (d/transact connection [entity])
-    (log/info "Successfully inserted entity" entity)))
+    (log/info "Inserting account" account)
+    (deref (d/transact connection [account]))
+    (log/info "Successfully inserted account" account)))
+
+(defn delete-account [storage name]
+  (let [{:keys [connection]} storage]
+    (log/info "Deleting account" name)
+    (deref (d/transact connection [[:db.fn/retractEntity [:account/name name]]]))
+    (log/info "Successfully deleted account" name)))
 
 (defn account-by-name [storage name]
   (let [{:keys [connection]} storage

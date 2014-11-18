@@ -5,7 +5,7 @@
             [compojure.api.routes :as routes]
             [ring.util.http-response :refer :all]
             [schema.core :as s]
-            [aws-overlord.storage :refer [insert account-by-name]]
+            [aws-overlord.storage :refer [insert-account delete-account account-by-name]]
             [aws-overlord.mapping :refer :all]))
 
 (def ^:private opt s/optional-key)
@@ -60,7 +60,7 @@
         (log/info "Configuring account" name)
         (let [{:keys [storage]} router
               named-account (assoc account :name name)]
-          (insert storage (account-to-db named-account))
+          (insert-account storage (account-to-db named-account))
           {:status 202}))
 
       (GET*
@@ -96,6 +96,8 @@
         :summary "Deletes an account"
         :path-params [name :- String]
         (log/info "Deleting account" name)
+        (let [{:keys [storage]} router]
+          (delete-account storage name))
         {:status 202}))))
 
 (defn- exception-logging [handler]

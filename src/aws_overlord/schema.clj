@@ -3,7 +3,8 @@
 
 (def account
   [{:db/id #db/id[:db.part/db]
-    :db/ident :account/name ; TODO unique!
+    :db/ident :account/name
+    :db/unique :db.unique/value
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
     :db/doc "An account's name"
