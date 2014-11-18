@@ -18,7 +18,7 @@
           (let [connection (d/connect url)]
             (when new
               (log/info "Creating schema")
-              (d/transact connection (concat schema/account schema/network)))
+              (d/transact connection (concat schema/account schema/network schema/subnet)))
             (assoc this :connection connection))))))
 
   (stop [this]
@@ -39,8 +39,9 @@
                          :where [?account :account/name ?name]]
                        db
                        name)]
-      (when entity-id
-        (d/entity db entity-id)))))
+      (if entity-id
+        (d/entity db entity-id)
+        (log/info "Unable to find entity with id" entity-id)))))
 
 (defn ^Storage new-storage [url]
   (map->Storage {:url url}))

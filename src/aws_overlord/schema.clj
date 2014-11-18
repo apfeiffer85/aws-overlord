@@ -58,3 +58,18 @@
     :db/cardinality :db.cardinality/many
     :db/doc "A network's subnets"
     :db.install/_attribute :db.part/db}])
+
+(def subnet
+  [{:db/id #db/id[:db.part/db]
+    :db/ident :subnet/availability-zone
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "A subnet's availability zone"
+    :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
+    :db/ident :subnet/mask
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "A network's network mask"
+    :db.install/_attribute :db.part/db}])
