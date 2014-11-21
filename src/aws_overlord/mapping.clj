@@ -1,5 +1,6 @@
 (ns aws-overlord.mapping
-  (:require [clojure.tools.logging :as log]))
+  (:require [clojure.tools.logging :as log]
+            [clojure.pprint :as pprint]))
 
 (defn- subnet-to-db [subnet]
   (log/info "Mapping subnet" subnet "to db entity")

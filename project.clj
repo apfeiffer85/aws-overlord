@@ -37,5 +37,8 @@
                                    [org.apache.logging.log4j/log4j-core "2.1"]
                                    [org.apache.logging.log4j/log4j-slf4j-impl "2.1"]]}
 
-             :dev {:dependencies [[javax.servlet/servlet-api "2.5"]
-                                  [org.slf4j/slf4j-nop "1.7.7"]]}})
+             :dev {:dependencies [[javax.servlet/servlet-api "2.5"]]}
+
+             :test [:free {:dependencies [[org.slf4j/slf4j-simple "1.7.7"]]}]
+
+             :repl [:free {:dependencies [[org.slf4j/slf4j-nop "1.7.7"]]}]})
