@@ -1,27 +1,26 @@
-(ns aws-overlord.mapping
-  (:require [clojure.tools.logging :as log]
-            [clojure.pprint :as pprint]))
+(ns aws-overlord.api.mapping
+  (:require [clojure.tools.logging :as log]))
 
 (defn- subnet-to-db [subnet]
   (log/info "Mapping subnet" subnet "to db entity")
   {:subnet/availability-zone (get-in subnet [:availability-zone])
-   :subnet/mask (get-in subnet [:mask])})
+   :subnet/cidr-block (get-in subnet [:cidr-block])})
 
 (defn- subnet-from-db [subnet]
   (log/info "Mapping subnet" subnet "from db entity")
   {:availability-zone (get-in subnet [:subnet/availability-zone])
-   :mask (get-in subnet [:subnet/mask])})
+   :cidr-block (get-in subnet [:subnet/cidr-block])})
 
 (defn- network-to-db [network]
   (log/info "Mapping network" network "to db entity")
   {:network/region (get-in network [:region])
-   :network/vpc (get-in network [:vpc])
+   :network/cidr-block (get-in network [:cidr-block])
    :network/subnets (map subnet-to-db (get-in network [:subnets]))})
 
 (defn- network-from-db [network]
   (log/info "Mapping network" network "from db entity")
   {:region (get-in network [:network/region])
-   :vpc (get-in network [:network/vpc])
+   :cidr-block (get-in network [:network/cidr-block])
    :subnets (map subnet-from-db (get-in network [:network/subnets]))})
 
 (defn account-to-db [account]

@@ -1,7 +1,7 @@
 (ns aws-overlord.storage-test
   (:import (java.util UUID))
   (:require [clojure.test :refer :all]
-            [aws-overlord.storage :refer :all]
+            [aws-overlord.data.storage :refer :all]
             [com.stuartsierra.component :refer :all]
             [datomic.api :as d]
             [clojure.walk :refer :all]
@@ -10,11 +10,11 @@
 
 (defn- new-subnet [region zone range block]
   {:subnet/availability-zone (str region zone)
-   :subnet/mask (str "10." range "." block ".0/17")})
+   :subnet/cidr-block (str "10." range "." block ".0/17")})
 
 (defn- new-network [region range]
   {:network/region region
-   :network/vpc (str "10." range ".0.0/19")
+   :network/cidr-block (str "10." range ".0.0/19")
    :network/subnets #{(new-subnet region "a" range 1)
                       (new-subnet region "b" range 2)
                       (new-subnet region "c" range 3)}})
@@ -62,3 +62,13 @@
   (is (not (nil? (account-by-name *unit* "foo"))))
   (delete-account *unit* "foo")
   (is (nil? (account-by-name *unit* "foo"))))
+
+(deftest test-all-accounts
+  (let [first (new-account "foo")
+        second (new-account "bar")]
+    (insert-account *unit* first)
+    (insert-account *unit* second)
+    (let [accounts (map without-id (all-accounts *unit*))]
+      (is (= 2 (count accounts)))
+      (is (some #{(without-id first)} accounts))
+      (is (some #{(without-id second)} accounts)))))

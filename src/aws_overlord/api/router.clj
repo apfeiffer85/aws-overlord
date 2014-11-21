@@ -1,46 +1,46 @@
-(ns aws-overlord.router
+(ns aws-overlord.api.router
   (:require [clojure.tools.logging :as log]
             [compojure.api.sweet :refer :all]
             [compojure.api.middleware :refer :all]
             [compojure.api.routes :as routes]
             [ring.util.http-response :refer :all]
             [schema.core :as s]
-            [aws-overlord.storage :refer [insert-account delete-account account-by-name]]
-            [aws-overlord.mapping :refer :all]))
+            [aws-overlord.data.storage :refer [insert-account delete-account account-by-name]]
+            [aws-overlord.api.mapping :refer :all]))
 
 (def ^:private opt s/optional-key)
 
 (s/defschema AccountView
              {:name String
               :networks [{:region String
-                          :vpc String
+                          :cidr-block String
                           :subnets [{:availability-zone String
-                                     :mask String}]}]
+                                     :cidr-block String}]}]
               :owner-email String})
 
 (s/defschema AccountCreation
              {:credentials {:key-id String
                             :access-key String}
               :networks [{:region String
-                          :vpc String
+                          :cidr-block String
                           :subnets [{:availability-zone String
-                                     :mask String}]}]
+                                     :cidr-block String}]}]
               :owner-email String})
 
 (s/defschema AccountUpdate
              {:credentials {:access-key String}
               :networks [{:region String
-                          :vpc String
+                          :cidr-block String
                           :subnets [{:availability-zone String
-                                     :mask String}]}]
+                                     :cidr-block String}]}]
               :owner-email String})
 
 (s/defschema AccountPatch
              {(opt :credentials) {(opt :access-key) String}
               (opt :networks) [{(opt :region) String
-                                (opt :vpc) String
+                                (opt :cidr-block) String
                                 (opt :subnets) [{(opt :availability-zone) String
-                                                 (opt :mask) String}]}]
+                                                 (opt :cidr-block) String}]}]
               (opt :owner-email) String})
 
 (defrecord Router [storage])

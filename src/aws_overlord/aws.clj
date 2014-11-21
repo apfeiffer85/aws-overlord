@@ -1,11 +1,21 @@
 (ns aws-overlord.aws
-  (:require [amazonica.core :as amazonica]
-            [amazonica.aws.identitymanagement :as iam]))
+  (:require [clojure.tools.logging :as log]
+            [amazonica.core :refer [set-root-unwrapping!]]))
 
-(amazonica/set-root-unwrapping! true)
+(set-root-unwrapping! true)
 
-(defn list-users [settings]
-  (iam/list-users settings))
+(def ^:dynamic ^:private *interceptors* nil)
 
-(defn list-groups-for-user [settings user-name]
-  (iam/list-groups-for-user settings :user-name user-name))
+(defn aws [api credentials & args]
+  (if (nil? *interceptors*)
+    (do
+      (log/info "Calling amazon")
+      (apply api credentials args))
+    (let [interceptor (get *interceptors* api)]
+      (when (not interceptor)
+        (throw (ex-info (str "Missing interceptor") {:fn api :args args})))
+      (apply interceptor credentials args))))
+
+(defmacro with-interceptors [interceptors & body]
+  `(binding [*interceptors* ~interceptors]
+     ~@body))

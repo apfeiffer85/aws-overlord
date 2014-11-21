@@ -1,4 +1,4 @@
-(ns aws-overlord.schema
+(ns aws-overlord.data.schema
   (:require [datomic.api]))
 
 (def account
@@ -48,10 +48,10 @@
     :db.install/_attribute :db.part/db}
 
    {:db/id #db/id[:db.part/db]
-    :db/ident :network/vpc
+    :db/ident :network/cidr-block
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
-    :db/doc "A network's vpc"
+    :db/doc "A network's cidr-block"
     :db.install/_attribute :db.part/db}
 
    {:db/id #db/id[:db.part/db]
@@ -71,8 +71,8 @@
     :db.install/_attribute :db.part/db}
 
    {:db/id #db/id[:db.part/db]
-    :db/ident :subnet/mask
+    :db/ident :subnet/cidr-block
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
-    :db/doc "A network's network mask"
+    :db/doc "A network's network cidr-block"
     :db.install/_attribute :db.part/db}])

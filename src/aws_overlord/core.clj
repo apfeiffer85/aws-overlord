@@ -4,9 +4,9 @@
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [aws-overlord.enforcer :refer [new-enforcer]]
-            [aws-overlord.http-server :refer [new-http-server]]
-            [aws-overlord.router :refer [new-router]]
-            [aws-overlord.storage :refer [new-storage]]
+            [aws-overlord.api.http-server :refer [new-http-server]]
+            [aws-overlord.api.router :refer [new-router]]
+            [aws-overlord.data.storage :refer [new-storage]]
             [aws-overlord.scheduler :refer [new-scheduler]]))
 
 (defn- new-config [config-file]

@@ -1,10 +1,10 @@
-(ns aws-overlord.http-server
+(ns aws-overlord.api.http-server
   (:require [clojure.tools.logging :as log]
             [com.stuartsierra.component :as component]
             [ring.adapter.jetty :as jetty]
             [compojure.api.sweet :refer :all]
             [compojure.api.middleware :refer [api-middleware]]
-            [aws-overlord.router :as router]))
+            [aws-overlord.api.router :as router]))
 
 (defrecord HTTPServer [port router server]
   component/Lifecycle

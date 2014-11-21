@@ -1,4 +1,4 @@
-(ns aws-overlord.datomic
+(ns aws-overlord.data.datomic
   (:require [datomic.api :as d]
             [clojure.walk :refer :all]))
 

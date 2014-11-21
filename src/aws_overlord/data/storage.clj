@@ -1,8 +1,8 @@
-(ns aws-overlord.storage
+(ns aws-overlord.data.storage
   (:require [clojure.tools.logging :as log]
             [com.stuartsierra.component :as component]
-            [aws-overlord.schema :as schema]
-            [aws-overlord.datomic :refer [touch-recursively]]
+            [aws-overlord.data.schema :as schema]
+            [aws-overlord.data.datomic :refer [touch-recursively]]
             [datomic.api :as d :refer [db q]]
             [clojure.walk :refer :all]))
 
@@ -55,6 +55,19 @@
   (let [{:keys [connection]} storage
         db (db connection)]
     (-account-by-name db name)))
+
+(defn- -all-accounts [db]
+  (log/info "Fetching all accounts")
+  (let [account-ids (q '[:find [?account ...]
+                         :where [?account :account/name]] db)
+        accounts (touch-recursively (map (partial d/entity db) account-ids))]
+        (log/info "Fetched" (count accounts) "accounts")
+        accounts))
+
+(defn all-accounts [storage]
+  (let [{:keys [connection]} storage
+        db (db connection)]
+    (-all-accounts db)))
 
 (defn ^Storage new-storage [url]
   (map->Storage {:url url}))
