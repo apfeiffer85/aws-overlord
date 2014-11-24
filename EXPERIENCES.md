@@ -1,0 +1,1 @@
+- renaming resources is BAAAAAAD, very bad!

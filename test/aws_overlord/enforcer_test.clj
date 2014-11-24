@@ -32,16 +32,22 @@
     :account/owner-email "d.fault@example.com"}])
 
 (def ^:private default-interceptors
-  {ec2/describe-key-pairs (constantly [])
-   ec2/create-key-pair (constantly {:key-name "key"})
-   ec2/describe-vpcs (constantly [])
-   ec2/create-vpc (constantly {:vpc-id "vpc"})
-   ec2/describe-subnets (constantly [])
-   ec2/create-subnet (constantly {:subnet-id "subnet"})})
+  {#'ec2/describe-key-pairs (constantly [])
+   #'ec2/create-key-pair (constantly {:key-name "key"})
+   #'ec2/describe-vpcs (constantly [])
+   #'ec2/create-vpc (constantly {:vpc-id "vpc"})
+   #'ec2/describe-internet-gateways (constantly [])
+   #'ec2/create-internet-gateway (constantly {:internet-gateway-id "internet-gateway"})
+   #'ec2/attach-internet-gateway (constantly true)
+   #'ec2/describe-subnets (constantly [])
+   #'ec2/create-subnet (constantly {:subnet-id "subnet"})})
 
 (deftest test-enforce
   (with-interceptors
     default-interceptors
     (doseq [account accounts]
       (let [context (enforce-account account)]
-        (is (= "vpc" (get-in context [:account :account/networks 0 :vpc-id])))))))
+        (is (= "vpc" (get-in context [:account :account/networks 0 :vpc-id])))
+        (is (= "subnet" (get-in context [:account :account/networks 0 :network/subnets 0 :subnet-id])))
+        (is (= "subnet" (get-in context [:account :account/networks 0 :network/subnets 1 :subnet-id])))
+        (is (= "subnet" (get-in context [:account :account/networks 0 :network/subnets 2 :subnet-id])))))))

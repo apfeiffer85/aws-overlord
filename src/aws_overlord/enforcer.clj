@@ -4,23 +4,23 @@
             [aws-overlord.scheduler :as s]
             [aws-overlord.tasks.key-pair :refer :all]
             [aws-overlord.tasks.vpc :refer :all]
+            [aws-overlord.tasks.internet-gateway :refer :all]
             [aws-overlord.tasks.subnet :refer :all]))
 
 (def ^:private tasks
-  ['aws-overlord.tasks.key-pair/create-key-pair
-   'aws-overlord.tasks.vpc/create-vpcs
-   'aws-overlord.tasks.subnet/create-subnets])
+  [#'create-key-pair
+   #'create-vpc
+   #'attach-internet-gateway
+   #'create-subnets])
 
 (defn- region-dependent? [task]
-  (:region-dependent (meta (resolve task))))
+  (:region-dependent (meta task)))
 
 (defn- category-of [task]
   (if (region-dependent? task) :region-dependent :region-independent))
 
 (defn- grouped-tasks [tasks]
-  (into {} (map (fn [[category tasks]]
-                  [category (map resolve tasks)])
-                (group-by category-of tasks))))
+  (group-by category-of tasks))
 
 (defn- pipe [fs]
   (apply comp (reverse fs)))
@@ -31,13 +31,23 @@
 (defn- index-by [coll attr val]
   (first (keep-indexed (fn [i el] (when #(= val (attr el)) i)) coll)))
 
+(defn- instrument [{:keys [network/cidr-block] :as network} task]
+  (fn [context]
+    (let [network-context (assoc context :network network)]
+      (task network-context))))
+
 (defn- region-dependent-tasks [tasks networks]
+  (for [{:keys [network/cidr-block] :as network} networks]
+    (instrument network (pipe (:region-dependent tasks)))))
+
+(defn- foo []
   ; TODO we need to propagate the changes made to :network back to the original under :account :account/networks
   (pipe (for [task (:region-dependent tasks)
               {:keys [network/cidr-block] :as network} networks]
           (fn [context]
             (let [result (task (merge context {:network network}))]
               (-> result
+                  ; TODO extract to own function
                   (update-in [:account :account/networks (index-by networks :network/cidr-block cidr-block)] merge (:network result))
                   (dissoc :network)))))))
 

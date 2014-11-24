@@ -9,11 +9,12 @@
 (defn aws [api credentials & args]
   (if (nil? *interceptors*)
     (do
-      (log/info "Calling amazon")
+      (log/info "Calling" api)
       (apply api credentials args))
     (let [interceptor (get *interceptors* api)]
       (when (not interceptor)
-        (throw (ex-info (str "Missing interceptor") {:fn api :args args})))
+        (throw (ex-info (str "Missing interceptor for" api) {:fn api :args args})))
+      (log/info "Intercepting" api)
       (apply interceptor credentials args))))
 
 (defmacro with-interceptors [interceptors & body]
