@@ -1,7 +1,16 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Basic Account Network Setup",
+  "Description": "Overlord Account Setup",
   "Resources": {
+    "CloudTrail": {
+      "Type": "AWS::CloudTrail::Trail",
+      "Properties": {
+        "IncludeGlobalServiceEvents": true,
+        "IsLogging": true,
+        "S3BucketName": "zalando-aws-cloudtrail",
+        "S3KeyPrefix": "Zalando"
+      }
+    },
     "Vpc": {
       "Type": "AWS::EC2::VPC",
       "Properties": {
@@ -218,7 +227,7 @@
         ]
       }
     },
-    "PublicRoutingTable": {
+    "PublicRouteTable": {
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
         "VpcId": {"Ref": "Vpc"},
@@ -235,38 +244,38 @@
       "Properties": {
         "DestinationCidrBlock": "0.0.0.0/0",
         "GatewayId": {"Ref": "InternetGateway"},
-        "RouteTableId": {"Ref": "PublicRoutingTable"}
+        "RouteTableId": {"Ref": "PublicRouteTable"}
       }
     },
     "PublicSubnetRouteAz1": {
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
       "Properties": {
-        "RouteTableId": {"Ref": "PublicRoutingTable"},
+        "RouteTableId": {"Ref": "PublicRouteTable"},
         "SubnetId": {"Ref": "PublicSubnetAz1"}
       }
     },
     "PublicSubnetRouteAz2": {
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
       "Properties": {
-        "RouteTableId": {"Ref": "PublicRoutingTable"},
+        "RouteTableId": {"Ref": "PublicRouteTable"},
         "SubnetId": {"Ref": "PublicSubnetAz2"}
       }
     },
     "PublicSubnetRouteAz3": {
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
       "Properties": {
-        "RouteTableId": {"Ref": "PublicRoutingTable"},
+        "RouteTableId": {"Ref": "PublicRouteTable"},
         "SubnetId": {"Ref": "PublicSubnetAz3"}
       }
     },
-    "PrivateRoutingTableAz1": {
+    "PrivateRouteTableAz1": {
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
         "VpcId": {"Ref": "Vpc"},
         "Tags": [
           {
             "Key": "Name",
-            "Value": "Private Subnet Routing eu-west-1a"
+            "Value": "Private Subnet eu-west-1a"
           }
         ]
       }
@@ -276,24 +285,24 @@
       "Properties": {
         "DestinationCidrBlock": "0.0.0.0/0",
         "InstanceId": {"Ref": "NatAz1"},
-        "RouteTableId": {"Ref": "PrivateRoutingTableAz1"}
+        "RouteTableId": {"Ref": "PrivateRouteTableAz1"}
       }
     },
     "PrivateSubnetRouteAz1": {
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
       "Properties": {
-        "RouteTableId": {"Ref": "PrivateRoutingTableAz1"},
+        "RouteTableId": {"Ref": "PrivateRouteTableAz1"},
         "SubnetId": {"Ref": "PrivateSubnetAz1"}
       }
     },
-    "PrivateRoutingTableAz2": {
+    "PrivateRouteTableAz2": {
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
         "VpcId": {"Ref": "Vpc"},
         "Tags": [
           {
             "Key": "Name",
-            "Value": "Private Subnet Routing eu-west-1b"
+            "Value": "Private Subnet eu-west-1b"
           }
         ]
       }
@@ -303,24 +312,24 @@
       "Properties": {
         "DestinationCidrBlock": "0.0.0.0/0",
         "InstanceId": {"Ref": "NatAz2"},
-        "RouteTableId": {"Ref": "PrivateRoutingTableAz2"}
+        "RouteTableId": {"Ref": "PrivateRouteTableAz2"}
       }
     },
     "PrivateSubnetRouteAz2": {
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
       "Properties": {
-        "RouteTableId": {"Ref": "PrivateRoutingTableAz2"},
+        "RouteTableId": {"Ref": "PrivateRouteTableAz2"},
         "SubnetId": {"Ref": "PrivateSubnetAz2"}
       }
     },
-    "PrivateRoutingTableAz3": {
+    "PrivateRouteTableAz3": {
       "Type": "AWS::EC2::RouteTable",
       "Properties": {
         "VpcId": {"Ref": "Vpc"},
         "Tags": [
           {
             "Key": "Name",
-            "Value": "Private Subnet Routing eu-west-1c"
+            "Value": "Private Subnet eu-west-1c"
           }
         ]
       }
@@ -330,13 +339,13 @@
       "Properties": {
         "DestinationCidrBlock": "0.0.0.0/0",
         "InstanceId": {"Ref": "NatAz3"},
-        "RouteTableId": {"Ref": "PrivateRoutingTableAz3"}
+        "RouteTableId": {"Ref": "PrivateRouteTableAz3"}
       }
     },
     "PrivateSubnetRouteAz3": {
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
       "Properties": {
-        "RouteTableId": {"Ref": "PrivateRoutingTableAz3"},
+        "RouteTableId": {"Ref": "PrivateRouteTableAz3"},
         "SubnetId": {"Ref": "PrivateSubnetAz3"}
       }
     },

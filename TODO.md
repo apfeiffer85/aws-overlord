@@ -1,5 +1,0 @@
-- Key pair
-- SAML security provider (https://idp.zalando.net/shibboleth)
-- IAM Role Shibboleth?
-- Cloud Formation template
-- VPC peering

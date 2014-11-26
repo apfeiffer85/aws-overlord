@@ -39,6 +39,8 @@
 
              :dev {:dependencies [[javax.servlet/servlet-api "2.5"]]}
 
+             :run [:free {:dependencies [[org.slf4j/slf4j-simple "1.7.7"]]}]
+
              :test [:free {:dependencies [[org.slf4j/slf4j-simple "1.7.7"]]}]
 
              :repl [:free {:dependencies [[org.slf4j/slf4j-nop "1.7.7"]]}]})

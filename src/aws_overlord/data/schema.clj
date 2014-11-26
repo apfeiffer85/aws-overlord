@@ -11,6 +11,14 @@
     :db.install/_attribute :db.part/db}
 
    {:db/id #db/id[:db.part/db]
+    :db/ident :account/account-id
+    :db/unique :db.unique/value
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "An account's AWS id"
+    :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
     :db/ident :account/key-id
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
@@ -64,6 +72,13 @@
 
 (def subnet
   [{:db/id #db/id[:db.part/db]
+    :db/ident :subnet/type
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "A subnet's type"
+    :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
     :db/ident :subnet/availability-zone
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
