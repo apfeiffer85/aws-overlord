@@ -18,7 +18,8 @@
                  [amazonica "0.2.30" :exclusions [joda-time commons-logging]]
                  [joda-time "2.5"]
                  ; scheduling
-                 [overtone/at-at "1.2.0"]]
+                 [overtone/at-at "1.2.0"]
+                 [org.clojure/data.json "0.2.5"]]
 
   :main aws-overlord.core
   :uberjar-name "aws-overlord.jar"

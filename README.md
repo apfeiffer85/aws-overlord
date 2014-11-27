@@ -12,9 +12,21 @@ Accounting configuration is done in two phases:
 
 ### Automatic Phase
 
-- Account Alias?
-- Account ID = Account Alias?
-- Account ID (parse from [GetUser](http://docs.aws.amazon.com/IAM/latest/APIReference/API_GetUser.html)?)
+Any given VPC is split up into three sections: *public* for internet-level load balancers,
+*shared* for company-internal load balancers and *private* for team-internal instances.
+
+Based on the bits of the VPC CIDR block:
+
+- two bits are reserved for public, shared and private
+    - 1/4 public subnets
+    - 1/4 shared subnets
+    - 2/4 private subnets
+- three bits are reserved for a maximum of 8 availability zones
+- only public and shared subnets of the same team are allowed to access private subnets
+- only private subnets of the same team and the internet are allowed to access the public subnet
+- TODO how can we restrict the communication between public and shared across the company?
+
+#### Tasks
 
 - [CreateKeyPair](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-CreateKeyPair.html)
 - [CreateSAMLProvider](http://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateSAMLProvider.html)
@@ -24,37 +36,44 @@ Accounting configuration is done in two phases:
 - generate wildcard certificate \*.team.aws.zalando
 - [UploadServerCertificate](http://docs.aws.amazon.com/IAM/latest/APIReference/API_UploadServerCertificate.html)
 - per region (AWS::Region)
-    - set up AWS::CloudTrail::Trail
-    - set up AWS::EC2::VPC
+    - set up AWS::CloudTrail::Trail "CloudTrail"
+    - set up AWS::EC2::VPC "Vpc"
     - per other team accounts
         - [CreateVpcPeeringConnection](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-CreateVpcPeeringConnection.html)
         - in the other team's account: [AcceptVpcPeeringConnection](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-AcceptVpcPeeringConnection.html)
-    - set up AWS::EC2::InternetGateway
-    - set up AWS::EC2::RouteTable (Internet Access)
-    - set up AWS::EC2::Route (Any → Internet Gateway)
+    - set up AWS::EC2::InternetGateway "InternetGateway"
+    - set up AWS::EC2::InternetGatewayAttachment "InternetGatewayAttachment" ("InternetGateway" → "Vpc")
+    - set up AWS::EC2::RouteTable "InternetAccess"
+    - set up AWS::EC2::Route "InternetGatewayRoute" (0.0.0.0/0 → "InternetGateway")
+    - set up AWS::EC2::SecurityGroup "NatSecurityGroup" (→ "Vpc")
+    - set up AWS::EC2::NetworkAcl "SharedNetworkAcl"
+    - set up AWS::EC2::NetworkAclEntry "AllowSharedNetworkAclEntry" (allow Vpc CIDR → "SharedNetworkAcl")
+    - set up AWS::EC2::NetworkAclEntry "DenyPublicToSharedNetworkAclEntry" (deny public CIDR → "SharedNetworkAcl")
+    - set up AWS::EC2::NetworkAcl "PrivateNetworkAcl"
+    - set up AWS::EC2::NetworkAclEntry "DenyPrivateNetworkAclEntry" (deny 0.0.0.0/0 → "PrivateNetworkAcl")
+    - set up AWS::EC2::NetworkAclEntry "AllowPublicToPrivateNetworkAclEntry" (allow public CIDR → "PrivateNetworkAcl")
+    - set up AWS::EC2::NetworkAclEntry "AllowSharedToPrivateNetworkAclEntry" (allow shared CIDR → "PrivateNetworkAcl")
     - per [availability zone](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-DescribeAvailabilityZones.html)
-        - set up AWS::EC2::Subnet (Public)
-        - set up AWS::EC2::SubnetRouteTableAssociation (Public → Internet Access)
-        - set up AWS::EC2::SecurityGroup (NAT)
-        - set up AWS::EC2::Instance (NAT, using the latest `amzn-ami-vpc-nat-pv` AMI) (TODO [high availbilty setup](https://aws.amazon.com/articles/2781451301784570))
-        - set up AWS::EC2::EIP (NAT)
-        - set up AWS::EC2::RouteTable (NAT)
-        - set up AWS::EC2::Route (Any → NAT)
-        - set up AWS::EC2::Subnet (Shared)
-        - set up AWS::EC2::NetworkAcl (Shared)
-        - set up AWS::EC2::NetworkAclEntry (deny Public → Shared)
-        - set up AWS::EC2::NetworkAclEntry (allow VPC → Shared)
-        - set up AWS::EC2::SubnetNetworkAclAssociation (Shared → Shared)
-        - set up AWS::EC2::Subnet (Private)
-        - set up AWS::EC2::SubnetRouteTableAssociation (Private → NAT)
+        - set up AWS::EC2::Subnet "PublicSubnetAzX"
+        - set up AWS::EC2::SubnetRouteTableAssociation "SubnetRouteAzX" ("PublicSubnetAzX" → "InternetAccess")
+        - set up AWS::EC2::Instance "NatAzX" (using `amzn-ami-vpc-nat-pv` AMI)
+        - TODO [high availbilty setup](https://aws.amazon.com/articles/2781451301784570) for NAT
+        - set up AWS::EC2::EIP "NatEipAzX" (→ "NatAzx")
+        - set up AWS::EC2::RouteTable "NatRouteTableAzX"
+        - set up AWS::EC2::Route "NatDefaultRouteAzX" ("NatRouteTableAzX", 0.0.0.0/0 → "NatAzX")
+        - set up AWS::EC2::Subnet "SharedSubnetAzX"
+        - set up AWS::EC2::SubnetNetworkAclAssociation "SharedSubnetNetworkAclAssociationAzX" ("SharedSubnetAzX" → "SharedNetworkAcl")
+        - set up AWS::EC2::Subnet "PrivateSubnetAzX"
+        - set up AWS::EC2::SubnetRouteTableAssociation "PrivateNatRouteTableAssociationAzX" ("PrivateSubnetAzx" → "NatRouteTableAzX")
+        - set up AWS::EC2::SubnetNetworkAclAssociation "PrivateSubnetNetworkAclAssociationAzX" ("PrivateSubnetAzX" → "PrivateNetworkAcl")
 
 ## API
 
 ![API](docs/api.png)
 
-### Data
+## Data
 
-#### Account
+### Account
 
 - team name
 - account id
@@ -70,27 +89,12 @@ Accounting configuration is done in two phases:
         - cidr block
         - type (shared, private, public)
 
-#### Access
+### Access
 
 - user name (LDAP)
 - instance-id
 - timestamp?!
 - comment? (Ticket ID)
-
-## Network Setup
-
-Any given VPC is split up into three sections: *public* for internet-level load balancers,
-*shared* for company-internal load balancers and *private* for team-internal instances.
-
-Based on the bits of the VPC CIDR block:
-- two bits are reserved for public, shared and private
-    - 1/4 public subnets
-    - 1/4 shared subnets
-    - 2/4 private subnets
-- three bits are reserved for a maximum of 8 availability zones
-- only public and shared subnets of the same team are allowed to access private subnets
-- only private subnets of the same team and the internet are allowed to access the public subnet
-- TODO how can we restrict the communication between public and shared across the company?
 
 ## Development
 

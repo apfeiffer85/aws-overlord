@@ -73,7 +73,7 @@
 (def subnet
   [{:db/id #db/id[:db.part/db]
     :db/ident :subnet/type
-    :db/valueType :db.type/string
+    :db/valueType :db.type/keyword
     :db/cardinality :db.cardinality/one
     :db/doc "A subnet's type"
     :db.install/_attribute :db.part/db}

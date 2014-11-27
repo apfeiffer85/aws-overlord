@@ -16,36 +16,36 @@
 
 (deftest test-generate-subnets-public
   (is (= (accounts/generate-subnets ["eu-west-1a" "eu-west-1b" "eu-west-1c"] [:public "10.144.0.0/21"])
-         [{:type "public"
+         [{:type :public
            :availability-zone "eu-west-1a"
            :cidr-block "10.144.0.0/24"}
-          {:type "public"
+          {:type :public
            :availability-zone "eu-west-1b"
            :cidr-block "10.144.1.0/24"}
-          {:type "public"
+          {:type :public
            :availability-zone "eu-west-1c"
            :cidr-block "10.144.2.0/24"}])))
 
 (deftest test-generate-subnets-shared
   (is (= (accounts/generate-subnets ["eu-west-1a" "eu-west-1b" "eu-west-1c"] [:shared "10.144.8.0/21"])
-         [{:type "shared"
+         [{:type :shared
            :availability-zone "eu-west-1a"
            :cidr-block "10.144.8.0/24"}
-          {:type "shared"
+          {:type :shared
            :availability-zone "eu-west-1b"
            :cidr-block "10.144.9.0/24"}
-          {:type "shared"
+          {:type :shared
            :availability-zone "eu-west-1c"
            :cidr-block "10.144.10.0/24"}])))
 
 (deftest test-generate-subnets-private
   (is (= (accounts/generate-subnets ["eu-west-1a" "eu-west-1b" "eu-west-1c"] [:private "10.144.16.0/20"])
-         [{:type "private"
+         [{:type :private
            :availability-zone "eu-west-1a"
            :cidr-block "10.144.16.0/23"}
-          {:type "private"
+          {:type :private
            :availability-zone "eu-west-1b"
            :cidr-block "10.144.18.0/23"}
-          {:type "private"
+          {:type :private
            :availability-zone "eu-west-1c"
            :cidr-block "10.144.20.0/23"}])))

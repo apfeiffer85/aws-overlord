@@ -18,7 +18,7 @@
     (nth (split (:arn (iam/get-user credentials)) #":") 4)))
 
 (defn- new-subnet [type availability-zone cidr-block]
-  {:type (name type)
+  {:type type
    :availability-zone availability-zone
    :cidr-block cidr-block})
 
