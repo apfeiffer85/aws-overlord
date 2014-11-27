@@ -31,9 +31,9 @@ Based on the bits of the VPC CIDR block:
 - [CreateKeyPair](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-CreateKeyPair.html)
 - [CreateSAMLProvider](http://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateSAMLProvider.html)
 - [CreateRole](http://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateRole.html) (SAML)
-- set up AWS::Route53::HostedZone (team.aws.zalando)
+- set up AWS::Route53::HostedZone (team.aws.example.com)
 - update internal name servers (TODO find out how)
-- generate wildcard certificate \*.team.aws.zalando
+- generate wildcard certificate \*.team.aws.example.com
 - [UploadServerCertificate](http://docs.aws.amazon.com/IAM/latest/APIReference/API_UploadServerCertificate.html)
 - per region (AWS::Region)
     - set up AWS::CloudTrail::Trail "CloudTrail"

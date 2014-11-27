@@ -7,8 +7,8 @@
       "Properties": {
         "IncludeGlobalServiceEvents": true,
         "IsLogging": true,
-        "S3BucketName": "zalando-aws-cloudtrail",
-        "S3KeyPrefix": "Zalando"
+        "S3BucketName": "mycompany-aws-cloudtrail",
+        "S3KeyPrefix": "MyCompany"
       }
     },
     "Vpc": {
@@ -18,7 +18,7 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "zalando-asa"
+            "Value": "mycompany-myteam"
           }
         ]
       }
