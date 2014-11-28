@@ -1,6 +1,6 @@
-(ns aws-overlord.logic.cloudformation-test
+(ns aws-overlord.tasks.stack-test
   (:require [clojure.test :refer :all]
-            [aws-overlord.logic.cloudformation :refer :all]
+            [aws-overlord.tasks.stack :refer :all]
             [clojure.data.json :refer [pprint write-str]]))
 
 (def network

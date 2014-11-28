@@ -78,7 +78,7 @@ Based on the bits of the VPC CIDR block:
 - team name
 - account id
 - key id
-- secret key
+- access key
 - key pair (generated)
 - server certificate (generated)
 - networks

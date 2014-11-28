@@ -33,6 +33,20 @@
     :db.install/_attribute :db.part/db}
 
    {:db/id #db/id[:db.part/db]
+    :db/ident :account/private-key
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "An account's private key"
+    :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
+    :db/ident :account/public-key
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "An account's private key"
+    :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
     :db/ident :account/networks
     :db/isComponent true
     :db/valueType :db.type/ref

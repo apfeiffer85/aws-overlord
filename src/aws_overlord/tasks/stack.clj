@@ -1,6 +1,5 @@
-(ns aws-overlord.logic.cloudformation
-  (:require [clojure.data.json :as json]
-            [clojure.string :refer [capitalize]]))
+(ns aws-overlord.tasks.stack
+  (:require [clojure.string :refer [capitalize]]))
 
 (defn- cloud-trail []
   {"Type" "AWS::CloudTrail::Trail"
