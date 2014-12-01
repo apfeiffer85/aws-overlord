@@ -18,3 +18,6 @@ pom.xml.asc
 
 # dev config
 /config.edn
+
+# generated
+/resources/generated.json

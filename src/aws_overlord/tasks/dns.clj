@@ -5,6 +5,7 @@
 (defn- hosted-zone [name]
   (str name ".aws.zalando."))
 
+; TODO is broken somehow, always returns true
 (defn- hosted-zone-exists? [name]
   (boolean (filter (comp #{(hosted-zone name)} :name)
                    (route53/list-hosted-zones))))

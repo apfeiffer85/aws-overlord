@@ -4,6 +4,7 @@
             [clojure.data.json :as json]
             [amazonica.core :refer [with-credential]]
             [amazonica.aws.cloudformation :as cf]
+            [aws-overlord.net :as net]
             [clojure.tools.logging :as log]))
 
 (defn- cloud-trail []
@@ -133,7 +134,7 @@
   {"Type" "AWS::EC2::Instance"
    "Properties" {"AvailabilityZone" availability-zone
                  "DisableApiTermination" true
-                 "ImageId" "ami-30913f47" ; current version of amzn-ami-vpc-nat-pv AMI
+                 "ImageId" "ami-30913f47"                   ; current version of amzn-ami-vpc-nat-pv AMI
                  "InstanceType" "m1.small"
                  "KeyName" "overlord"
                  "Monitoring" true
@@ -200,11 +201,8 @@
                "InternetGatewayRoute" (gateway-route "InternetGateway" "InternetAccess")
                "NatSecurityGroup" (nat-security-group cidr-block)
                "PrivateNetworkAcl" (network-acl "Private Network")
-               ; TODO dynamic cidr blocks
-               "AllowInboundPublicToPrivateNetworkAclEntry" (network-acl-entry "PrivateNetworkAcl" "10.144.0.0/21" :inbound :allow :priority 100)
-               "AllowOutboundPublicToPrivateNetworkAclEntry" (network-acl-entry "PrivateNetworkAcl" "10.144.0.0/21" :outbound :allow :priority 100)
-               "AllowInboundSharedToPrivateNetworkAclEntry" (network-acl-entry "PrivateNetworkAcl" "10.144.8.0/21" :inbound :allow :priority 110)
-               "AllowOutboundSharedToPrivateNetworkAclEntry" (network-acl-entry "PrivateNetworkAcl" "10.144.8.0/21" :outbound :allow :priority 110)}
+               "AllowInboundPrivateNetworkAclEntry" (network-acl-entry "PrivateNetworkAcl" cidr-block :inbound :allow :priority 100)
+               "AllowOutboundPrivateNetworkAclEntry" (network-acl-entry "PrivateNetworkAcl" cidr-block :outbound :allow :priority 100)}
               (availability-zones subnets)))
 
 (defn generate-template [account network]

@@ -19,33 +19,59 @@
                                :saml-metadata-document (slurp "https://idp.zalando.net/shibboleth")))
     (log/info "SAML provider already exists")))
 
-(def ^:private admin
-  {"Version" "2012-10-17"
-   "Statement" [{"Action" "*"
+
+(def ^:private admin-policy
+  {
+   "Version" "2012-10-17"
+   "Statement" [
+                {
+                 "Action" "*"
                  "Resource" "*"
-                 "Effect" "Allow"}]
+                 "Effect" "Allow"
+                 }
+                ]
    })
 
-(def ^:private power-user
-  {"Version" "2012-10-17"
-   "Statement" [{"Effect" "Allow"
-                 "Action" ["iam:CreateRole"
+(def ^:private power-user-policy
+  {
+   "Version" "2012-10-17"
+   "Statement" [
+                {
+                 "Effect" "Allow"
+                 "Action" [
+                           "iam:CreateRole"
                            "iam:CreateInstanceProfile"
                            "iam:AddRoleToInstanceProfile"
                            "iam:PassRole"
-                           "iam:ListServerCertificates"]
-                 "Resource" "*"}
-                {"Effect" "Allow"
+                           "iam:ListServerCertificates"
+                           ]
+                 "Resource" "*"
+                 }
+                {
+                 "Effect" "Allow"
                  "Action" "ec2:*"
-                 "Condition" {"ForAnyValue:StringLike" {"ec2:Region" ["eu-central-1"
-                                                                      "eu-west-1"]}}
-                 "Resource" "*"}
-                {"Effect" "Allow"
-                 "NotAction" ["ec2:*"
-                              "iam:*"]
-                 "Resource" "*"}
-                {"Effect" "Deny"
-                 "Action" ["ec2:DeleteNetworkAcl"
+                 "Condition" {
+                              "ForAnyValue:StringLike" {
+                                                        "ec2:Region" [
+                                                                      "eu-central-1"
+                                                                      "eu-west-1"
+                                                                      ]
+                                                        }
+                              }
+                 "Resource" "*"
+                 }
+                {
+                 "Effect" "Allow"
+                 "NotAction" [
+                              "ec2:*"
+                              "iam:*"
+                              ]
+                 "Resource" "*"
+                 }
+                {
+                 "Effect" "Deny"
+                 "Action" [
+                           "ec2:DeleteNetworkAcl"
                            "ec2:DeleteRoute"
                            "ec2:DeleteRouteTable"
                            "ec2:DeleteSubnet"
@@ -53,14 +79,19 @@
                            "ec2:DeleteVpcPeeringConnection"
                            "ec2:DeleteVpnConnection"
                            "ec2:DeleteVpnConnectionRoute"
-                           "ec2:DeleteVpnGateway"]
-                 "Resource" "*"}]
+                           "ec2:DeleteVpnGateway"
+                           ] "Resource" "*"
+                 }
+                ]
    })
 
-
-(def ^:private read-only
-  {"Version" "2012-10-17"
-   "Statement" [{"Action" ["appstream:Get*"
+(def ^:private read-only-policy
+  {
+   "Version" "2012-10-17"
+   "Statement" [
+                {
+                 "Action" [
+                           "appstream:Get*"
                            "autoscaling:Describe*"
                            "cloudformation:DescribeStacks"
                            "cloudformation:DescribeStackEvents"
@@ -119,9 +150,12 @@
                            "sqs:ReceiveMessage"
                            "storagegateway:List*"
                            "storagegateway:Describe*"
-                           "trustedadvisor:Describe*"]
+                           "trustedadvisor:Describe*"
+                           ]
                  "Resource" "*"
-                 "Effect" "Allow"}]
+                 "Effect" "Allow"
+                 }
+                ]
    })
 
 (defn- role-exists? [name]
@@ -130,19 +164,43 @@
     (catch NoSuchEntityException e
       false)))
 
-(defn- create-role [role-name policy-document]
+(defn- create-role [role-name account-id]
   (if-not (role-exists? role-name)
     (do
       (log/info "Creating role" role-name)
       (iam/create-role :role-name role-name
-                       :assume-role-policy-document (json/write-str policy-document)
+                       :assume-role-policy-document (json/write-str {"Version" "2012-10-17",
+                                                                     "Statement" [{"Sid" "",
+                                                                                   "Effect" "Allow",
+                                                                                   "Principal" {"Federated" (str "arn:aws:iam::" account-id ":saml-provider/Shibboleth")},
+                                                                                   "Action" "sts:AssumeRoleWithSAML",
+                                                                                   "Condition" {"StringEquals" {"SAML:aud" "https://signin.aws.amazon.com/saml"}}}]
+                                                                     })
                        :path "/"))
     (log/info "Role" role-name "already exists")))
+
+(defn- role-policy-exists [name]
+  (try
+    (boolean (iam/get-role-policy :role-name name :policy-name name))
+    (catch NoSuchEntityException e
+      false)))
+
+(defn- create-role-policy [name policy-document]
+  (if-not (role-policy-exists name)
+    (do
+      (log/info "Creating role policy" name)
+      (iam/put-role-policy :role-name name
+                           :policy-name name
+                           :policy-document (json/write-str policy-document)))
+    (log/info "Role policy" name "already exists")))
 
 ; TODO rollback?
 (defn run [{:keys [aws-id]}]
   (log/info "Setting up security")
   (create-saml-provider aws-id)
-  (create-role "Shibboleth-Administrator" admin)
-  (create-role "Shibboleth-PowerUser" power-user)
-  (create-role "Shibboleth-ReadOnly" read-only))
+  (create-role "Shibboleth-Administrator" aws-id)
+  (create-role "Shibboleth-PowerUser" aws-id)
+  (create-role "Shibboleth-ReadOnly" aws-id)
+  (create-role-policy "Shibboleth-Administrator" admin-policy)
+  (create-role-policy "Shibboleth-PowerUser" power-user-policy)
+  (create-role-policy "Shibboleth-ReadOnly" read-only-policy))
