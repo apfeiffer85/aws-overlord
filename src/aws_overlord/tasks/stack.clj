@@ -1,5 +1,10 @@
 (ns aws-overlord.tasks.stack
-  (:require [clojure.string :refer [capitalize]]))
+  (:import (com.amazonaws AmazonServiceException))
+  (:require [clojure.string :refer [capitalize]]
+            [clojure.data.json :as json]
+            [amazonica.core :refer [with-credential]]
+            [amazonica.aws.cloudformation :as cf]
+            [clojure.tools.logging :as log]))
 
 (defn- cloud-trail []
   {"Type" "AWS::CloudTrail::Trail"
@@ -103,19 +108,19 @@
 (defn- type-name [type]
   (-> type name capitalize))
 
-(defn- subnet-id [{:keys [subnet/type subnet/availability-zone]}]
+(defn- subnet-id [{:keys [type availability-zone]}]
   (str (type-name type) "SubnetAz" (zone-index availability-zone)))
 
-(defn- subnet-name [{:keys [subnet/type]}]
+(defn- subnet-name [{:keys [type]}]
   (str (type-name type) " Subnet"))
 
-(defn- subnet-route-id [{:keys [subnet/type subnet/availability-zone]}]
+(defn- subnet-route-id [{:keys [type availability-zone]}]
   (str (type-name type) "SubnetRouteAz" (zone-index availability-zone)))
 
-(defn- nat-id [{:keys [subnet/availability-zone]}]
+(defn- nat-id [{:keys [availability-zone]}]
   (str "NatAz" (zone-index availability-zone)))
 
-(defn- new-subnet [{:keys [subnet/availability-zone subnet/cidr-block] :as subnet}]
+(defn- new-subnet [{:keys [availability-zone cidr-block] :as subnet}]
   {"Type" "AWS::EC2::Subnet"
    "Properties" {"VpcId" {"Ref" "Vpc"}
                  "CidrBlock" cidr-block
@@ -127,9 +132,10 @@
 (defn- nat-instance [availability-zone subnet-id]
   {"Type" "AWS::EC2::Instance"
    "Properties" {"AvailabilityZone" availability-zone
-                 ;"DisableApiTermination" true              ; TODO enable
-                 "ImageId" "ami-30913f47"                   ; TODO configurable?
-                 "InstanceType" "m3.xlarge"                 ; TODO dynamic?
+                 "DisableApiTermination" true
+                 "ImageId" "ami-30913f47" ; current version of amzn-ami-vpc-nat-pv AMI
+                 "InstanceType" "m1.small"
+                 "KeyName" "overlord"
                  "Monitoring" true
                  "SecurityGroupIds" [{"Ref" "NatSecurityGroup"}]
                  "SourceDestCheck" false
@@ -155,7 +161,7 @@
                 (mmap (juxt nat-id (comp (partial nat-instance availability-zone) subnet-id)) subnets)
                 {(str "NatRouteTableAz" zone-index) (route-table (str "NAT " availability-zone))
                  (str "NatDefaultRouteAz" zone-index) (instance-route (str "NatAz" zone-index) (str "NatRouteTableAz" zone-index))
-                 ;(str "NatEipAz" zone-index) (elastic-ip (str "NatAz" zone-index)) TODO enable
+                 (str "NatEipAz" zone-index) (elastic-ip (str "NatAz" zone-index))
                  })))
 
 (defn- setup-shared [availability-zone subnets]
@@ -173,20 +179,20 @@
                           (partial subnet-network-acl-association "PrivateNetworkAcl")) (map subnet-id subnets))))
 
 (defn- availability-zone [availability-zone subnets]
-  (let [{:keys [public shared private]} (group-by :subnet/type subnets)]
+  (let [{:keys [public shared private]} (group-by :type subnets)]
     (merge-with deny-duplicate-keys
                 (setup-public availability-zone public)
                 (setup-shared availability-zone shared)
                 (setup-private availability-zone private))))
 
 (defn- availability-zones [subnets]
-  (let [groups (group-by :subnet/availability-zone subnets)]
+  (let [groups (group-by :availability-zone subnets)]
     (apply merge-with deny-duplicate-keys
            (map (partial apply availability-zone) groups))))
 
-(defn- resources [{:keys [account/name]} {:keys [network/cidr-block network/subnets]}]
+(defn- resources [{:keys [name]} {:keys [cidr-block subnets]}]
   (merge-with deny-duplicate-keys
-              {;"CloudTrail" (cloud-trail) TODO enable
+              {"CloudTrail" (cloud-trail)
                "Vpc" (vpc name cidr-block)
                "InternetGateway" (internet-gateway)
                "InternetGatewayAttachment" (internet-gateway-attachment "InternetGateway")
@@ -205,3 +211,17 @@
   {"AWSTemplateFormatVersion" "2010-09-09"
    "Description" "Overlord Account Setup"
    "Resources" (resources account network)})
+
+(defn- stack-exists? [name]
+  (try
+    (not (empty? (cf/describe-stacks :stack-name name)))
+    (catch AmazonServiceException e
+      false)))
+
+(defn create-stack [name account network]
+  (if-not (stack-exists? name)
+    (do
+      (log/info "Creating stack" name)
+      (cf/create-stack :stack-name name
+                       :template-body (json/write-str (generate-template account network))))
+    (log/info "Stack" name "already exists")))

@@ -3,7 +3,8 @@
             [aws-overlord.api.mapping :refer :all]
             [clojure.string :refer [split]]
             [amazonica.aws.ec2 :as ec2]
-            [amazonica.aws.identitymanagement :as iam]))
+            [amazonica.aws.identitymanagement :as iam]
+            [clojure.tools.logging :as log]))
 
 (defn- create-credentials [account]
   {:access-key (get-in account [:credentials :key-id])
@@ -14,8 +15,10 @@
     (mapv :zone-name (ec2/describe-availability-zones (assoc credentials :endpoint region)))))
 
 (defn- get-account-id [account]
-  (let [credentials (create-credentials account)]
-    (nth (split (:arn (iam/get-user credentials)) #":") 4)))
+  (let [credentials (create-credentials account)
+        user (iam/get-user credentials)]
+    (log/info "Fetching account-id from" user)
+    (nth (split (:arn user) #":") 4)))
 
 (defn- new-subnet [type availability-zone cidr-block]
   {:type type
@@ -39,6 +42,6 @@
 
 (defn prepare [{:keys [networks] :as account-data}]
   (let [account (assoc account-data :networks (mapv (partial update-network account-data) networks))
-        account (assoc account :account-id (get-account-id account-data))
+        account (assoc account :aws-id (get-account-id account-data))
         db-account (account-to-db account)]
     db-account))

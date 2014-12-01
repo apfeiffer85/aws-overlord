@@ -1,46 +1,51 @@
 (ns aws-overlord.storage-test
-  (:import (java.util UUID))
   (:require [clojure.test :refer :all]
             [aws-overlord.data.storage :refer :all]
             [com.stuartsierra.component :refer :all]
-            [datomic.api :as d]
             [clojure.walk :refer :all]
-            [clojure.pprint :refer [pprint]]
-            [clojure.tools.logging :as log]))
+            [clojure.java.jdbc :as jdbc]
+            [clojure.tools.logging :as log]
+            [clojure.pprint :refer [pprint]]))
 
 (defn- new-subnet [region zone range block]
-  {:subnet/availability-zone (str region zone)
-   :subnet/cidr-block (str "10." range "." block ".0/17")})
+  {:type :public
+   :availability-zone (str region zone)
+   :cidr-block (str "10." range "." block ".0/17")})
 
 (defn- new-network [region range]
-  {:network/region region
-   :network/cidr-block (str "10." range ".0.0/19")
-   :network/subnets #{(new-subnet region "a" range 1)
+  {:region region
+   :cidr-block (str "10." range ".0.0/19")
+   :private-key nil
+   :subnets #{(new-subnet region "a" range 1)
                       (new-subnet region "b" range 2)
                       (new-subnet region "c" range 3)}})
 
 (defn- new-account [name]
-  {:db/id #db/id[:db.part/user]
-   :account/name name
-   :account/key-id "key-id"
-   :account/access-key "access-key"
-   :account/networks #{(new-network "eu-west-1" 17)
+  {:name name
+   :aws-id "123"
+   :key-id "key-id"
+   :access-key "access-key"
+   :networks #{(new-network "eu-west-1" 17)
                        (new-network "eu-central-1" 18)}
-   :account/owner-email "d.fault@example.com"})
+   :owner-email "d.fault@example.com"})
 
 (defn- without-id [entity]
-  (dissoc entity :db/id))
+  (let [remove-id #(if (map? %) (dissoc % :id :account-id :network-id ) %)]
+    (prewalk remove-id (remove-id entity))))
 
 (def ^:dynamic *unit*)
 
 (defn- with-db [test]
-  (let [url (str "datomic:mem://" (UUID/randomUUID))
-        system (start-system {:storage (new-storage url)})]
+  (let [database {:subprotocol "postgresql"
+                  :subname "//localhost:5435/overlord"
+                  :user "postgres"
+                  :password "postgres"}
+        system (start-system {:storage (new-storage database)})]
     (binding [*unit* (:storage system)]
       (test))
     (stop-system system)
-    (log/info "Deleting database" url)
-    (d/delete-database url)))
+    (log/info "Deleting database" database)
+    (jdbc/execute! database ["TRUNCATE account CASCADE;"])))
 
 (use-fixtures :each with-db)
 
@@ -54,8 +59,8 @@
 (deftest test-account-by-name-present
   (let [account (new-account "foo")]
     (insert-account *unit* account)
-    (let [actual (account-by-name *unit* "foo")]
-      (is (= (without-id actual) (without-id account))))))
+    (let [actual (without-id (account-by-name *unit* "foo"))]
+      (is (= actual account)))))
 
 (deftest test-delete-account
   (insert-account *unit* (new-account "foo"))
@@ -72,3 +77,13 @@
       (is (= 2 (count accounts)))
       (is (some #{(without-id first)} accounts))
       (is (some #{(without-id second)} accounts)))))
+
+(deftest test-set-private-key
+  (let [account (new-account "foo")]
+    (insert-account *unit* account)
+    (let [{:keys [networks]} (account-by-name *unit* "foo")]
+      (doseq [network networks]
+        (set-private-key *unit* network "s3cr3t"))
+      (let [{:keys [networks]} (account-by-name *unit* "foo")]
+        (doseq [{:keys [private-key]} networks]
+          (is (= "s3cr3t" private-key)))))))

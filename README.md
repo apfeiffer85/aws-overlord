@@ -30,7 +30,7 @@ Based on the bits of the VPC CIDR block:
 
 - [CreateKeyPair](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-CreateKeyPair.html)
 - [CreateSAMLProvider](http://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateSAMLProvider.html)
-- [CreateRole](http://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateRole.html) (SAML)
+- [CreateRole](http://docs.aws.amazon.com/IAM/latest/APIReference/API_CreateRole.html)s (SAML)
 - set up AWS::Route53::HostedZone (team.aws.example.com)
 - update internal name servers (TODO find out how)
 - generate wildcard certificate \*.team.aws.example.com
@@ -38,7 +38,7 @@ Based on the bits of the VPC CIDR block:
 - per region (AWS::Region)
     - set up AWS::CloudTrail::Trail "CloudTrail"
     - set up AWS::EC2::VPC "Vpc"
-    - per other team accounts
+    - TODO per other team accounts
         - [CreateVpcPeeringConnection](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-CreateVpcPeeringConnection.html)
         - in the other team's account: [AcceptVpcPeeringConnection](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-AcceptVpcPeeringConnection.html)
     - set up AWS::EC2::InternetGateway "InternetGateway"
@@ -57,7 +57,6 @@ Based on the bits of the VPC CIDR block:
         - set up AWS::EC2::Subnet "PublicSubnetAzX"
         - set up AWS::EC2::SubnetRouteTableAssociation "SubnetRouteAzX" ("PublicSubnetAzX" → "InternetAccess")
         - set up AWS::EC2::Instance "NatAzX" (using `amzn-ami-vpc-nat-pv` AMI)
-        - TODO [high availbilty setup](https://aws.amazon.com/articles/2781451301784570) for NAT
         - set up AWS::EC2::EIP "NatEipAzX" (→ "NatAzx")
         - set up AWS::EC2::RouteTable "NatRouteTableAzX"
         - set up AWS::EC2::Route "NatDefaultRouteAzX" ("NatRouteTableAzX", 0.0.0.0/0 → "NatAzX")

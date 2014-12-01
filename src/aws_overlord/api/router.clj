@@ -5,12 +5,12 @@
             [compojure.api.routes :as routes]
             [ring.util.http-response :refer :all]
             [schema.core :as s]
+            [aws-overlord.logging :refer [with-mdc]]
+            [aws-overlord.enforcer :refer [enforce]]
             [aws-overlord.data.storage :refer [insert-account delete-account account-by-name]]
             [aws-overlord.logic.accounts :as accounts]
             [aws-overlord.api.mapping :refer :all]
             [aws-overlord.net :refer :all]))
-
-(def ^:private opt s/optional-key)
 
 (s/defschema AccountView
              {:name String
@@ -28,7 +28,7 @@
                           :cidr-block String}]
               :owner-email String})
 
-(defrecord Router [storage])
+(defrecord Router [storage enforcer])
 
 (defn- api-routes [router]
   (routes/with-routes
@@ -44,9 +44,10 @@
         :return AccountView
         :body [account AccountCreation]
         (log/info "Configuring account" name)
-        (let [{:keys [storage]} router
+        (let [{:keys [storage enforcer]} router
               named-account (assoc account :name name)]
           (insert-account storage (accounts/prepare named-account))
+          (enforce enforcer (account-by-name storage name))
           {:status 202
            :body (account-from-db (account-by-name storage name))}))
 

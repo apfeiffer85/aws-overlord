@@ -1,2 +1,5 @@
 {:http-port 8080
- :datomic-url "datomic:mem://overlord"}
+ :database {:db "overlord"
+            :user "postgres"
+            :password "postgres"
+            :port "5435"}}

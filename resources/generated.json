@@ -11,6 +11,13 @@
    "Properties":
    {"RouteTableId":{"Ref":"NatRouteTableAz2"},
     "SubnetId":{"Ref":"PrivateSubnetAz2"}}},
+  "CloudTrail":
+  {"Type":"AWS::CloudTrail::Trail",
+   "Properties":
+   {"IncludeGlobalServiceEvents":true,
+    "S3BucketName":"zalando-aws-cloudtrail",
+    "S3KeyPrefix":"Zalando",
+    "IsLogging":true}},
   "PrivateNatRouteTableAssociationAz1":
   {"Type":"AWS::EC2::SubnetRouteTableAssociation",
    "Properties":
@@ -83,10 +90,12 @@
     "ImageId":"ami-30913f47",
     "SubnetId":{"Ref":"PublicSubnetAz3"},
     "Tenancy":"dedicated",
-    "InstanceType":"m3.xlarge",
+    "InstanceType":"m1.small",
     "Tags":[{"Key":"Name", "Value":"NAT"}],
     "SourceDestCheck":false,
+    "KeyName":"overlord",
     "AvailabilityZone":"eu-west-1c",
+    "DisableApiTermination":true,
     "Monitoring":true}},
   "PrivateSubnetAz1":
   {"Type":"AWS::EC2::Subnet",
@@ -112,6 +121,9 @@
    "Properties":
    {"VpcId":{"Ref":"Vpc"},
     "Tags":[{"Key":"Name", "Value":"NAT eu-west-1a"}]}},
+  "NatEipAz1":
+  {"Type":"AWS::EC2::EIP",
+   "Properties":{"InstanceId":{"Ref":"NatAz1"}}},
   "NatAz1":
   {"Type":"AWS::EC2::Instance",
    "Properties":
@@ -119,10 +131,12 @@
     "ImageId":"ami-30913f47",
     "SubnetId":{"Ref":"PublicSubnetAz1"},
     "Tenancy":"dedicated",
-    "InstanceType":"m3.xlarge",
+    "InstanceType":"m1.small",
     "Tags":[{"Key":"Name", "Value":"NAT"}],
     "SourceDestCheck":false,
+    "KeyName":"overlord",
     "AvailabilityZone":"eu-west-1a",
+    "DisableApiTermination":true,
     "Monitoring":true}},
   "AllowInboundPublicToPrivateNetworkAclEntry":
   {"Type":"AWS::EC2::NetworkAclEntry",
@@ -142,6 +156,9 @@
     "Protocol":-1,
     "RuleAction":"allow",
     "RuleNumber":110}},
+  "NatEipAz3":
+  {"Type":"AWS::EC2::EIP",
+   "Properties":{"InstanceId":{"Ref":"NatAz3"}}},
   "SharedSubnetAz3":
   {"Type":"AWS::EC2::Subnet",
    "Properties":
@@ -179,6 +196,9 @@
    "Properties":
    {"SubnetId":{"Ref":"PrivateSubnetAz2"},
     "NetworkAclId":{"Ref":"PrivateNetworkAcl"}}},
+  "NatEipAz2":
+  {"Type":"AWS::EC2::EIP",
+   "Properties":{"InstanceId":{"Ref":"NatAz2"}}},
   "PublicSubnetAz1":
   {"Type":"AWS::EC2::Subnet",
    "Properties":
@@ -217,10 +237,12 @@
     "ImageId":"ami-30913f47",
     "SubnetId":{"Ref":"PublicSubnetAz2"},
     "Tenancy":"dedicated",
-    "InstanceType":"m3.xlarge",
+    "InstanceType":"m1.small",
     "Tags":[{"Key":"Name", "Value":"NAT"}],
     "SourceDestCheck":false,
+    "KeyName":"overlord",
     "AvailabilityZone":"eu-west-1b",
+    "DisableApiTermination":true,
     "Monitoring":true}},
   "AllowOutboundPublicToPrivateNetworkAclEntry":
   {"Type":"AWS::EC2::NetworkAclEntry",
