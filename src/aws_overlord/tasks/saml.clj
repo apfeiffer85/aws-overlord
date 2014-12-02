@@ -44,6 +44,10 @@
                            "iam:AddRoleToInstanceProfile"
                            "iam:PassRole"
                            "iam:ListServerCertificates"
+                           "iam:ListRoles"
+                           "iam:ListRolePolicies"
+                           ; FIXME: PutRolePolicy allows privilege escalation!
+                           "iam:PutRolePolicy"
                            ]
                  "Resource" "*"
                  }
