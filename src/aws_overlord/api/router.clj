@@ -9,24 +9,24 @@
             [aws-overlord.enforcer :refer [enforce]]
             [aws-overlord.data.storage :refer [insert-account delete-account account-by-name]]
             [aws-overlord.logic.accounts :as accounts]
-            [aws-overlord.api.mapping :refer :all]
             [aws-overlord.net :refer :all]))
 
 (s/defschema AccountView
              {:name String
               :networks [{:region String
                           :cidr-block String
+                          :vpn-gateway-ip String
                           :subnets [{:type String
                                      :availability-zone String
-                                     :cidr-block String}]}]
-              :owner-email String})
+                                     :cidr-block String}]}]})
 
 (s/defschema AccountCreation
-             {:credentials {:key-id String
-                            :access-key String}
+             {:key-id String
+              :access-key String
               :networks [{:region String
-                          :cidr-block String}]
-              :owner-email String})
+                          :cidr-block String
+                          :vpn-gateway-ip String
+                          :vpn-routes [String]}]})
 
 (defrecord Router [storage enforcer])
 
@@ -44,12 +44,12 @@
         :return AccountView
         :body [account AccountCreation]
         (log/info "Configuring account" name)
-        (let [{:keys [storage enforcer]} router
-              named-account (assoc account :name name)]
-          (insert-account storage (accounts/prepare named-account))
-          (enforce enforcer (account-by-name storage name))
-          {:status 202
-           :body (account-from-db (account-by-name storage name))}))
+        (let [{:keys [storage enforcer]} router]
+          (insert-account storage (accounts/prepare name account))
+          (let [saved-account (account-by-name storage name)]
+            (enforce enforcer saved-account)
+            {:status 202
+             :body saved-account})))
 
       (GET*
         "/accounts/" []
@@ -67,7 +67,7 @@
         (let [{:keys [storage]} router
               account (account-by-name storage name)]
           (if account
-            {:status 200 :body (account-from-db account)}
+            {:status 200 :body account}
             {:status 404})))
 
       (GET*

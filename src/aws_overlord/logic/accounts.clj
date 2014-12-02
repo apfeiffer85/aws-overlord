@@ -1,24 +1,31 @@
 (ns aws-overlord.logic.accounts
+  (:import (com.amazonaws AmazonServiceException))
   (:require [aws-overlord.net :refer :all]
-            [aws-overlord.api.mapping :refer :all]
             [clojure.string :refer [split]]
+            [amazonica.core :refer [with-credential]]
             [amazonica.aws.ec2 :as ec2]
             [amazonica.aws.identitymanagement :as iam]
             [clojure.tools.logging :as log]))
 
-(defn- create-credentials [account]
-  {:access-key (get-in account [:credentials :key-id])
-   :secret-key (get-in account [:credentials :access-key])})
+(defn- list-availability-zones []
+  (mapv :zone-name (ec2/describe-availability-zones)))
 
-(defn- list-availability-zones [account region]
-  (let [credentials (create-credentials account)]
-    (mapv :zone-name (ec2/describe-availability-zones (assoc credentials :endpoint region)))))
-
-(defn- get-account-id [account]
-  (let [credentials (create-credentials account)
-        user (iam/get-user credentials)]
+(defn- get-account-id []
+  (let [user (iam/get-user)]
     (log/info "Fetching account-id from" user)
     (nth (split (:arn user) #":") 4)))
+
+(defn- key-pair-exists? [name]
+  (try
+    (not (empty? (ec2/describe-key-pairs :key-names [name])))
+    (catch AmazonServiceException e
+      false)))
+
+(defn- create-key-pair []
+  (when (key-pair-exists? "overlord")
+    (throw (IllegalStateException. "Key pair overlord already exists")))
+  (log/info "Creating key pair")
+  (:key-material (ec2/create-key-pair :key-name "overlord")))
 
 (defn- new-subnet [type availability-zone cidr-block]
   {:type type
@@ -36,12 +43,20 @@
      :shared shared
      :private private}))
 
-(defn- update-network [account {:keys [region cidr-block] :as network}]
-  (assoc network :subnets (apply concat (mapv (partial generate-subnets (list-availability-zones account region))
-                                              (generate-typed-cidr-blocks cidr-block)))))
+(defn- update-network [{:keys [key-id access-key]} {:keys [region cidr-block] :as network}]
+  (with-credential
+    [key-id access-key region]
+    (let [cidr-blocks (generate-typed-cidr-blocks cidr-block)
+          availability-zones (list-availability-zones)
+          generate-subnets-in-az (partial generate-subnets availability-zones)]
+      (assoc network
+             :private-key (create-key-pair)
+             :subnets (apply concat (mapv generate-subnets-in-az cidr-blocks))))))
 
-(defn prepare [{:keys [networks] :as account-data}]
-  (let [account (assoc account-data :networks (mapv (partial update-network account-data) networks))
-        account (assoc account :aws-id (get-account-id account-data))
-        db-account (account-to-db account)]
-    db-account))
+(defn prepare [name {:keys [key-id access-key networks] :as account}]
+  (with-credential
+    [key-id access-key]
+    (assoc account
+           :name name
+           :networks (mapv (partial update-network account) networks)
+           :aws-id (get-account-id))))

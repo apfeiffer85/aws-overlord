@@ -1,4 +1,4 @@
-(ns aws-overlord.tasks.saml
+(ns aws-overlord.tasks.security
   (:import (com.amazonaws.services.identitymanagement.model NoSuchEntityException))
   (:require [clojure.data.json :as json]
             [amazonica.aws.identitymanagement :as iam]
@@ -19,27 +19,18 @@
                                :saml-metadata-document (slurp "https://idp.zalando.net/shibboleth")))
     (log/info "SAML provider already exists")))
 
-
 (def ^:private admin-policy
-  {
-   "Version" "2012-10-17"
-   "Statement" [
-                {
-                 "Action" "*"
+  {"Version" "2012-10-17"
+   "Statement" [{"Action" "*"
                  "Resource" "*"
-                 "Effect" "Allow"
-                 }
-                ]
+                 "Effect" "Allow"}]
    })
 
 (def ^:private power-user-policy
   {
    "Version" "2012-10-17"
-   "Statement" [
-                {
-                 "Effect" "Allow"
-                 "Action" [
-                           "iam:CreateRole"
+   "Statement" [{"Effect" "Allow"
+                 "Action" ["iam:CreateRole"
                            "iam:CreateInstanceProfile"
                            "iam:AddRoleToInstanceProfile"
                            "iam:PassRole"
@@ -47,35 +38,19 @@
                            "iam:ListRoles"
                            "iam:ListRolePolicies"
                            ; FIXME: PutRolePolicy allows privilege escalation!
-                           "iam:PutRolePolicy"
-                           ]
-                 "Resource" "*"
-                 }
-                {
-                 "Effect" "Allow"
+                           "iam:PutRolePolicy"]
+                 "Resource" "*"}
+                {"Effect" "Allow"
                  "Action" "ec2:*"
-                 "Condition" {
-                              "ForAnyValue:StringLike" {
-                                                        "ec2:Region" [
-                                                                      "eu-central-1"
-                                                                      "eu-west-1"
-                                                                      ]
-                                                        }
-                              }
-                 "Resource" "*"
-                 }
-                {
-                 "Effect" "Allow"
-                 "NotAction" [
-                              "ec2:*"
-                              "iam:*"
-                              ]
-                 "Resource" "*"
-                 }
-                {
-                 "Effect" "Deny"
-                 "Action" [
-                           "ec2:DeleteNetworkAcl"
+                 "Condition" {"ForAnyValue:StringLike" {"ec2:Region" ["eu-central-1"
+                                                                      "eu-west-1"]}}
+                 "Resource" "*"}
+                {"Effect" "Allow"
+                 "NotAction" ["ec2:*"
+                              "iam:*"]
+                 "Resource" "*"}
+                {"Effect" "Deny"
+                 "Action" ["ec2:DeleteNetworkAcl"
                            "ec2:DeleteRoute"
                            "ec2:DeleteRouteTable"
                            "ec2:DeleteSubnet"
@@ -83,19 +58,13 @@
                            "ec2:DeleteVpcPeeringConnection"
                            "ec2:DeleteVpnConnection"
                            "ec2:DeleteVpnConnectionRoute"
-                           "ec2:DeleteVpnGateway"
-                           ] "Resource" "*"
-                 }
-                ]
+                           "ec2:DeleteVpnGateway"]
+                 "Resource" "*"}]
    })
 
 (def ^:private read-only-policy
-  {
-   "Version" "2012-10-17"
-   "Statement" [
-                {
-                 "Action" [
-                           "appstream:Get*"
+  {"Version" "2012-10-17"
+   "Statement" [{"Action" ["appstream:Get*"
                            "autoscaling:Describe*"
                            "cloudformation:DescribeStacks"
                            "cloudformation:DescribeStackEvents"
@@ -154,12 +123,9 @@
                            "sqs:ReceiveMessage"
                            "storagegateway:List*"
                            "storagegateway:Describe*"
-                           "trustedadvisor:Describe*"
-                           ]
+                           "trustedadvisor:Describe*"]
                  "Resource" "*"
-                 "Effect" "Allow"
-                 }
-                ]
+                 "Effect" "Allow"}]
    })
 
 (defn- role-exists? [name]
@@ -168,18 +134,21 @@
     (catch NoSuchEntityException e
       false)))
 
+(defn- role-policy-document [account-id]
+  {"Version" "2012-10-17",
+   "Statement" [{"Sid" "",
+                 "Effect" "Allow",
+                 "Principal" {"Federated" (str "arn:aws:iam::" account-id ":saml-provider/Shibboleth")},
+                 "Action" "sts:AssumeRoleWithSAML",
+                 "Condition" {"StringEquals" {"SAML:aud" "https://signin.aws.amazon.com/saml"}}}]
+   })
+
 (defn- create-role [role-name account-id]
   (if-not (role-exists? role-name)
     (do
       (log/info "Creating role" role-name)
       (iam/create-role :role-name role-name
-                       :assume-role-policy-document (json/write-str {"Version" "2012-10-17",
-                                                                     "Statement" [{"Sid" "",
-                                                                                   "Effect" "Allow",
-                                                                                   "Principal" {"Federated" (str "arn:aws:iam::" account-id ":saml-provider/Shibboleth")},
-                                                                                   "Action" "sts:AssumeRoleWithSAML",
-                                                                                   "Condition" {"StringEquals" {"SAML:aud" "https://signin.aws.amazon.com/saml"}}}]
-                                                                     })
+                       :assume-role-policy-document (json/write-str (role-policy-document account-id))
                        :path "/"))
     (log/info "Role" role-name "already exists")))
 
@@ -198,7 +167,6 @@
                            :policy-document (json/write-str policy-document)))
     (log/info "Role policy" name "already exists")))
 
-; TODO rollback?
 (defn run [{:keys [aws-id]}]
   (log/info "Setting up security")
   (create-saml-provider aws-id)

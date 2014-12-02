@@ -25,6 +25,8 @@
                  [org.clojure/java.jdbc "0.3.6"]
                  [java-jdbc/dsl "0.1.1"]]
 
+  :plugins [[lein-db "0.1.0"]]
+
   :main aws-overlord.core
   :uberjar-name "aws-overlord.jar"
   :profiles {:uberjar {:resource-paths ["swagger-ui"]}
@@ -35,8 +37,6 @@
                                    [org.apache.logging.log4j/log4j-slf4j-impl "2.1"]]}
 
              :dev {:dependencies [[javax.servlet/servlet-api "2.5"]]}
-
-             :run [:log]
 
              :test [:log]
 

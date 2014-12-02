@@ -15,22 +15,25 @@
 (defn- new-network [region range]
   {:region region
    :cidr-block (str "10." range ".0.0/19")
-   :private-key nil
+   :vpn-gateway-ip (str "20." range ".0.1")
+   :vpn-routes ["10.10.0.0/19"
+                "10.120.0.0/21"
+                "10.200.0.0/20"]
+   :private-key "s3cr3t"
    :subnets #{(new-subnet region "a" range 1)
-                      (new-subnet region "b" range 2)
-                      (new-subnet region "c" range 3)}})
+              (new-subnet region "b" range 2)
+              (new-subnet region "c" range 3)}})
 
 (defn- new-account [name]
   {:name name
-   :aws-id "123"
+   :aws-id (str (rand-int 1000))
    :key-id "key-id"
    :access-key "access-key"
    :networks #{(new-network "eu-west-1" 17)
-                       (new-network "eu-central-1" 18)}
-   :owner-email "d.fault@example.com"})
+               (new-network "eu-central-1" 18)}})
 
 (defn- without-id [entity]
-  (let [remove-id #(if (map? %) (dissoc % :id :account-id :network-id ) %)]
+  (let [remove-id #(if (map? %) (dissoc % :id :account-id :network-id) %)]
     (prewalk remove-id (remove-id entity))))
 
 (def ^:dynamic *unit*)
@@ -77,13 +80,3 @@
       (is (= 2 (count accounts)))
       (is (some #{(without-id first)} accounts))
       (is (some #{(without-id second)} accounts)))))
-
-(deftest test-set-private-key
-  (let [account (new-account "foo")]
-    (insert-account *unit* account)
-    (let [{:keys [networks]} (account-by-name *unit* "foo")]
-      (doseq [network networks]
-        (set-private-key *unit* network "s3cr3t"))
-      (let [{:keys [networks]} (account-by-name *unit* "foo")]
-        (doseq [{:keys [private-key]} networks]
-          (is (= "s3cr3t" private-key)))))))

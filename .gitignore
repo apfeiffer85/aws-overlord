@@ -21,3 +21,4 @@ pom.xml.asc
 
 # generated
 /resources/generated.json
+/test-resources/*.json

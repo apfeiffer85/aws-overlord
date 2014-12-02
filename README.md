@@ -9,6 +9,9 @@ Accounting configuration is done in two phases:
 - sign up for a new Amazon account
 - set up consolidated billing
 - remove billing information, e.g. credit card
+- add root MFA
+- set up overlord IAM user
+- set up key-id and access-key (non root)
 
 ### Automatic Phase
 
@@ -42,7 +45,13 @@ Based on the bits of the VPC CIDR block:
         - [CreateVpcPeeringConnection](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-CreateVpcPeeringConnection.html)
         - in the other team's account: [AcceptVpcPeeringConnection](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-AcceptVpcPeeringConnection.html)
     - set up AWS::EC2::InternetGateway "InternetGateway"
-    - set up AWS::EC2::InternetGatewayAttachment "InternetGatewayAttachment" ("InternetGateway" → "Vpc")
+    - set up AWS::EC2::VPCGatewayAttachment "InternetGatewayAttachment" ("InternetGateway" → "Vpc")
+    - set up AWS::EC2::RouteTable "VpcPeering"
+    - set up AWS::EC2::VPNGateway "VpnGateway"
+    - set up AWS::EC2::VPCGatewayAttachment "VpnGatewayAttachment" ("VpnGateway" → "Vpc")
+    - set up AWS::EC2::CustomerGateway "CustomerGateway"
+    - set up AWS::EC2::VPNConnection "VpnConnection" ("VpnGateway" → "CustomerGateway")
+    - set up AWS::EC2::VPNConnectionRoute "VpnConnectionRouteX" (a.b.c.d/s → "VpnConnection")
     - set up AWS::EC2::RouteTable "InternetAccess"
     - set up AWS::EC2::Route "InternetGatewayRoute" (0.0.0.0/0 → "InternetGateway")
     - set up AWS::EC2::SecurityGroup "NatSecurityGroup" (→ "Vpc")
@@ -55,14 +64,17 @@ Based on the bits of the VPC CIDR block:
     - set up AWS::EC2::NetworkAclEntry "AllowSharedToPrivateNetworkAclEntry" (allow shared CIDR → "PrivateNetworkAcl")
     - per [availability zone](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-DescribeAvailabilityZones.html)
         - set up AWS::EC2::Subnet "PublicSubnetAzX"
-        - set up AWS::EC2::SubnetRouteTableAssociation "SubnetRouteAzX" ("PublicSubnetAzX" → "InternetAccess")
+        - set up AWS::EC2::SubnetRouteTableAssociation "PublicSubnetRouteAzX" ("PublicSubnetAzX" → "InternetAccess")
+        - set up AWS::EC2::SubnetRouteTableAssociation "PublicVpcSubnetRouteAzX" ("PublicSubnetAzX" → "VpcPeering")
         - set up AWS::EC2::Instance "NatAzX" (using `amzn-ami-vpc-nat-pv` AMI)
         - set up AWS::EC2::EIP "NatEipAzX" (→ "NatAzx")
         - set up AWS::EC2::RouteTable "NatRouteTableAzX"
         - set up AWS::EC2::Route "NatDefaultRouteAzX" ("NatRouteTableAzX", 0.0.0.0/0 → "NatAzX")
         - set up AWS::EC2::Subnet "SharedSubnetAzX"
+        - set up AWS::EC2::SubnetRouteTableAssociation "SharedVpcSubnetRouteAzX" ("SharedSubnetAzX" → "VpcPeering")
         - set up AWS::EC2::SubnetNetworkAclAssociation "SharedSubnetNetworkAclAssociationAzX" ("SharedSubnetAzX" → "SharedNetworkAcl")
         - set up AWS::EC2::Subnet "PrivateSubnetAzX"
+        - set up AWS::EC2::SubnetRouteTableAssociation "PrivateVpcSubnetRouteAzX" ("PrivateSubnetAzX" → "VpcPeering")
         - set up AWS::EC2::SubnetRouteTableAssociation "PrivateNatRouteTableAssociationAzX" ("PrivateSubnetAzx" → "NatRouteTableAzX")
         - set up AWS::EC2::SubnetNetworkAclAssociation "PrivateSubnetNetworkAclAssociationAzX" ("PrivateSubnetAzX" → "PrivateNetworkAcl")
 
@@ -103,6 +115,7 @@ Use [Leinignen](http://leiningen.org/):
 
 or run the test suite
 
+    $ lein db
     $ lein test
 
 or with a REPL:

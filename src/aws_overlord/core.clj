@@ -3,11 +3,13 @@
   (:require [com.stuartsierra.component :as component :refer [using]]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [aws-overlord.aws] ; needed for set-root-unwrapping!
+            [aws-overlord.aws]
+            ; needed for set-root-unwrapping!
             [aws-overlord.enforcer :refer [new-enforcer]]
             [aws-overlord.api.http-server :refer [new-http-server]]
             [aws-overlord.api.router :refer [new-router]]
-            [aws-overlord.data.storage :refer [new-storage]]))
+            [aws-overlord.data.storage :refer [new-storage]]
+            [clojure.tools.logging :as log]))
 
 (defn- new-config [config-file]
   (edn/read-string (slurp (or config-file (io/resource "config.edn")))))

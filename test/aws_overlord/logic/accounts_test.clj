@@ -3,8 +3,8 @@
             [aws-overlord.logic.accounts :as accounts]))
 
 (def account
-  {:credentials {:key-id "foo"
-                 :access-key "bar"}
+  {:key-id "foo"
+   :access-key "bar"
    :networks [{:region "eu-west-1"
                :cidr-block "10.144.0.0/19"}]})
 
