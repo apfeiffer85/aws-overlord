@@ -27,7 +27,6 @@ Based on the bits of the VPC CIDR block:
 - three bits are reserved for a maximum of 8 availability zones
 - only public and shared subnets of the same team are allowed to access private subnets
 - only private subnets of the same team and the internet are allowed to access the public subnet
-- TODO how can we restrict the communication between public and shared across the company?
 
 #### Tasks
 
@@ -41,7 +40,7 @@ Based on the bits of the VPC CIDR block:
 - per region (AWS::Region)
     - set up AWS::CloudTrail::Trail "CloudTrail"
     - set up AWS::EC2::VPC "Vpc"
-    - TODO per other team accounts
+    - per other team accounts
         - [CreateVpcPeeringConnection](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-CreateVpcPeeringConnection.html)
         - in the other team's account: [AcceptVpcPeeringConnection](http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-AcceptVpcPeeringConnection.html)
     - set up AWS::EC2::InternetGateway "InternetGateway"

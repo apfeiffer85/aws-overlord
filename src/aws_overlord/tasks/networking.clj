@@ -162,7 +162,7 @@
 (defn- nat-instance [availability-zone subnet-id]
   {"Type" "AWS::EC2::Instance"
    "Properties" {"AvailabilityZone" availability-zone
-                 ; TODO enable "DisableApiTermination" true
+                 "DisableApiTermination" true
                  "ImageId" "ami-30913f47"                   ; current version of amzn-ami-vpc-nat-pv AMI
                  "InstanceType" "m1.small"
                  "KeyName" "overlord"
