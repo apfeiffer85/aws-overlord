@@ -29,25 +29,22 @@
       :vpc-id
       (fail-if nil? "No VPC for given CIDR" cidr-block)))
 
-; TODO find Shared and Private route tables and add a route to all of them
-(defn- find-route-table-id []
-  (-> (ec2/describe-route-tables :filters [(filter-pair "tag:name" "")])
-      first
-      :route-table-id
-      (fail-if nil? "No VPC peering route with name" "VPC Peering")))
+(defn- find-route-tables []
+  (mapv :route-table-id (ec2/describe-route-tables :filters [(filter-pair "tag:VPC-Routing" "true")])))
 
 (defn- route [vpc-peering-connection-id cidr-block]
-  (ec2/create-route :route-table-id (find-route-table-id)
-                    :destination-cidr-block cidr-block
-                    :vpc-peering-connection-id vpc-peering-connection-id))
+  (doseq [route-table-id (find-route-tables)]
+    (ec2/create-route :route-table-id route-table-id
+                      :destination-cidr-block cidr-block
+                      :vpc-peering-connection-id vpc-peering-connection-id)))
 
 (defn- peer [{new-cidr-block :cidr-block :keys [region]}
              {:keys [aws-id key-id access-key]} {existing-cidr-block :cidr-block}]
   (let [vpc-id (find-vpc-id new-cidr-block)
         peer-vpc-id (with-credential [key-id access-key region] (find-vpc-id existing-cidr-block))
         connection-id (-> (ec2/create-vpc-peering-connection :vpc-id vpc-id
-                                                         :peer-vpc-id peer-vpc-id
-                                                         :peer-owner-id aws-id)
+                                                             :peer-vpc-id peer-vpc-id
+                                                             :peer-owner-id aws-id)
                           :vpc-peering-connection-id)]
 
     (with-credential [key-id access-key region]
@@ -70,9 +67,9 @@
            existing-name :name
            existing-networks :networks
            :as existing-account} existing-accounts]
-      (when-let [{existing-cidr-block :cidr-block :as existing-network} (find-network-by-region existing-networks region)]
-        (if-not (peered? new-id  new-cidr-block existing-id existing-cidr-block)
-          (do
-            (log/info "Peering" new-name "and" existing-name)
-            (peer new-network existing-account existing-network))
-          (log/info new-name "and" existing-name "are already peered")))))
+    (when-let [{existing-cidr-block :cidr-block :as existing-network} (find-network-by-region existing-networks region)]
+      (if-not (peered? new-id new-cidr-block existing-id existing-cidr-block)
+        (do
+          (log/info "Peering" new-name "and" existing-name)
+          (peer new-network existing-account existing-network))
+        (log/info new-name "and" existing-name "are already peered")))))

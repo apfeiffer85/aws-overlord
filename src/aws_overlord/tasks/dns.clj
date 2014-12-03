@@ -5,10 +5,12 @@
 (defn- hosted-zone [name]
   (str name ".aws.zalando."))
 
-; TODO is broken somehow, always returns true
 (defn- hosted-zone-exists? [name]
-  (boolean (filter (comp #{(hosted-zone name)} :name)
-                   (route53/list-hosted-zones))))
+  (->> (route53/list-hosted-zones)
+      :hosted-zones
+      (map :name)
+      (filter #{(hosted-zone name)})
+      seq))
 
 (defn- create-hosted-zone [name]
   (if-not (hosted-zone-exists? name)
@@ -18,5 +20,7 @@
                                   :caller-reference name))
     (log/info "Hosted zone already exists")))
 
+; TODO team.aws.zalando.
+; TODO team.aws.zalando.net.
 (defn run [{:keys [name]}]
   (create-hosted-zone name))

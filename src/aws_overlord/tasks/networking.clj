@@ -39,12 +39,14 @@
                  "VpnGatewayId" {"Ref" vpn-gateway-id}}
    })
 
-(defn- route-table [name]
+(defn- route-table [name & {:keys [vpc-routing] :or {vpc-routing false}}]
   {"Type" "AWS::EC2::RouteTable"
    "Properties" {
                  "VpcId" {"Ref" "Vpc"}
                  "Tags" [{"Key" "Name"
-                          "Value" name}]}
+                          "Value" name}
+                         {"Key" "VPC-Routing"
+                          "Value" (str vpc-routing)}]}
    })
 
 (defn- gateway-route [cidr-block gateway route-table-id]
@@ -201,7 +203,7 @@
   (let [private-route-table (str "PrivateRouteTableAz" (zone-index availability-zone))]
     (merge-with deny-duplicate-keys
                 (mmap (juxt subnet-id new-subnet) subnets)
-                {private-route-table (route-table (str "Private " availability-zone))
+                {private-route-table (route-table (str "Private " availability-zone) :vpc-routing true)
                  (str "PrivateVpnGatewayRoutePropagationAz" (zone-index availability-zone)) (vpn-gateway-route-propagation private-route-table)}
                 (mmap (juxt (partial subnet-prefix-route-id "NatDefault")
                             (comp (partial instance-route private-route-table) (partial str "NatAz") zone-index :availability-zone)) subnets)
@@ -233,7 +235,7 @@
                "InternetGatewayAttachment" (internet-gateway-attachment "InternetGateway")
                "InternetGatewayRoute" (internet-gateway-route "PublicRouteTable")
                "PublicRouteTable" (route-table "Public")
-               "SharedRouteTable" (route-table "Shared")
+               "SharedRouteTable" (route-table "Shared" :vpc-routing true)
                "SharedVpnGatewayRoutePropagation" (vpn-gateway-route-propagation "SharedRouteTable")
                "NatSecurityGroup" (nat-security-group cidr-block)
                "VpnGateway" (vpn-gateway "VPN Gateway")
