@@ -10,6 +10,9 @@
                 "10.64.0.0/16"
                 "10.160.0.0/11"
                 "10.228.0.0/15"]
+   :name-servers ["10.144.137.5",
+                  "10.144.138.5",
+                  "10.144.136.5"]
    :subnets [{:type :private
               :availability-zone "eu-west-1a"
               :cidr-block "10.144.16.0/23"}

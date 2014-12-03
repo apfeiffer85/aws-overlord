@@ -5,14 +5,15 @@
 
 (defn- filter-pair [key value]
   {:name key
-   :value value})
+   :values (if (sequential? value) value [value])})
 
 (defn- directly-peered? [acceptor-id acceptor-cidr requester-id requester-cidr]
-  (boolean (ec2/describe-vpc-peering-connections
-             :filters [(filter-pair "accepter-vpc-info.cidr-block" acceptor-cidr)
-                       (filter-pair "accepter-vpc-info.owner-id" acceptor-id)
-                       (filter-pair "requester-vpc-info.cidr-block" requester-cidr)
-                       (filter-pair "requester-vpc-info.owner-id" requester-id)])))
+  (seq (ec2/describe-vpc-peering-connections
+         :filters [(filter-pair "accepter-vpc-info.cidr-block" acceptor-cidr)
+                   (filter-pair "accepter-vpc-info.owner-id" acceptor-id)
+                   (filter-pair "requester-vpc-info.cidr-block" requester-cidr)
+                   (filter-pair "requester-vpc-info.owner-id" requester-id)
+                   (filter-pair "status-code" ["pending-acceptance" "provisioning" "active"])])))
 
 (defn- peered? [left-id left-cidr right-id right-cidr]
   (or (directly-peered? left-id left-cidr right-id right-cidr)
@@ -34,28 +35,37 @@
 
 (defn- route [vpc-peering-connection-id cidr-block]
   (doseq [route-table-id (find-route-tables)]
+    (log/info "Creating VPN routes in" route-table-id "to" cidr-block)
     (ec2/create-route :route-table-id route-table-id
                       :destination-cidr-block cidr-block
                       :vpc-peering-connection-id vpc-peering-connection-id)))
+
+(defn- create-peering-connection [vpc-id peer-vpc-id aws-id]
+  (log/info "Creating VPC peering connection between" vpc-id "and" peer-vpc-id)
+  (-> (ec2/create-vpc-peering-connection :vpc-id vpc-id :peer-vpc-id peer-vpc-id :peer-owner-id aws-id)
+      :vpc-peering-connection-id))
+
+(defn- accept-peering-connection [connection-id]
+  (log/info "Accepting VPC peering connection" connection-id)
+  (ec2/accept-vpc-peering-connection :vpc-peering-connection-id connection-id))
 
 (defn- peer [{new-cidr-block :cidr-block :keys [region]}
              {:keys [aws-id key-id access-key]} {existing-cidr-block :cidr-block}]
   (let [vpc-id (find-vpc-id new-cidr-block)
         peer-vpc-id (with-credential [key-id access-key region] (find-vpc-id existing-cidr-block))
-        connection-id (-> (ec2/create-vpc-peering-connection :vpc-id vpc-id
-                                                             :peer-vpc-id peer-vpc-id
-                                                             :peer-owner-id aws-id)
-                          :vpc-peering-connection-id)]
+        connection-id (create-peering-connection vpc-id peer-vpc-id aws-id)]
 
     (with-credential [key-id access-key region]
-                     (ec2/accept-vpc-peering-connection :vpc-peering-connection-id connection-id)
+                     (accept-peering-connection connection-id)
                      (route connection-id new-cidr-block))
 
     (route connection-id existing-cidr-block)))
 
 
 (defn- find-network-by-region [networks region]
-  (-> networks (filter (comp #{region} :region)) first))
+  (->> networks
+       (filter (comp #{region} :region))
+       first))
 
 (defn run [{new-id :aws-id new-name :name}
            {new-cidr-block :cidr-block :keys [region] :as new-network}

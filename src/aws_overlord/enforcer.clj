@@ -26,9 +26,8 @@
                          (log/info "Performing region-wide actions in" region)
                          (networking/run account network)
                          (let [all-accounts (storage/all-accounts storage)
-                               existing-accounts (filterv (comp #{id} :id) all-accounts)]
-                           (peering/run account network existing-accounts)
-                           ))))))
+                               existing-accounts (filterv (comp (complement #{id}) :id) all-accounts)]
+                           (peering/run account network existing-accounts)))))))
 
 (defrecord Enforcer [storage])
 

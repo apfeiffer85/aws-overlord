@@ -7,7 +7,7 @@
             [schema.core :as s]
             [aws-overlord.logging :refer [with-mdc]]
             [aws-overlord.enforcer :refer [enforce]]
-            [aws-overlord.data.storage :refer [insert-account delete-account account-by-name]]
+            [aws-overlord.data.storage :refer :all]
             [aws-overlord.logic.accounts :as accounts]
             [aws-overlord.net :refer :all]))
 
@@ -16,6 +16,8 @@
               :networks [{:region String
                           :cidr-block String
                           :vpn-gateway-ip String
+                          :vpn-routes [String]
+                          :name-servers [String]
                           :subnets [{:type String
                                      :availability-zone String
                                      :cidr-block String}]}]})
@@ -26,9 +28,25 @@
               :networks [{:region String
                           :cidr-block String
                           :vpn-gateway-ip String
-                          :vpn-routes [String]}]})
+                          :vpn-routes [String]
+                          :name-servers [String]}]})
 
 (defrecord Router [storage enforcer])
+
+(defn- outbound-subnet [subnet]
+  (-> subnet
+      (dissoc :id :network-id)
+      (update-in [:type] name)))
+
+(defn- outbound-network [network]
+  (-> network
+      (dissoc :id :private-key :account-id)
+      (update-in [:subnets] (partial mapv outbound-subnet))))
+
+(defn- outbound [account]
+  (-> account
+      (dissoc :id :key-id :access-key :aws-id)
+      (update-in [:networks] (partial mapv outbound-network))))
 
 (defn- api-routes [router]
   (routes/with-routes
@@ -49,37 +67,24 @@
           (let [saved-account (account-by-name storage name)]
             (enforce enforcer saved-account)
             {:status 202
-             :body saved-account})))
+             :body (outbound saved-account)})))
 
       (GET*
-        "/accounts/" []
+        "/accounts" []
         :summary "Retrieves all accounts"
         :return [AccountView]
-        (log/info "Retrieving all accounts")
-        {:status 200 :body []})
+        (let [{:keys [storage]} router]
+        {:status 200 :body (mapv outbound (all-accounts storage))}))
 
       (GET*
         "/accounts/:name" []
         :summary "Retrieves an account"
         :path-params [name :- String]
         :return AccountView
-        (log/info "Retrieving account" name)
         (let [{:keys [storage]} router
               account (account-by-name storage name)]
           (if account
-            {:status 200 :body account}
-            {:status 404})))
-
-      (GET*
-        "/accounts/:name/status" []
-        :summary "Retrieves an account's status"
-        :path-params [name :- String]
-        :return AccountView
-        (log/info "Retrieving status of account" name)
-        (let [{:keys [storage]} router
-              account (account-by-name storage name)]
-          (if account
-            {:status 200 :body nil}
+            {:status 200 :body (outbound account)}
             {:status 404}))))
 
     (swaggered

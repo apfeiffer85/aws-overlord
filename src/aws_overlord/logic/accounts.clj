@@ -23,7 +23,8 @@
 
 (defn- create-key-pair []
   (when (key-pair-exists? "overlord")
-    (throw (IllegalStateException. "Key pair overlord already exists")))
+    (log/info "Deleting existing key pair")
+    (ec2/delete-key-pair :key-name "overlord"))
   (log/info "Creating key pair")
   (:key-material (ec2/create-key-pair :key-name "overlord")))
 

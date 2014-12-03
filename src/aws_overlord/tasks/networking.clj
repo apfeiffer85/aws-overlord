@@ -3,6 +3,7 @@
   (:require [clojure.string :refer [capitalize]]
             [clojure.data.json :as json]
             [amazonica.core :refer [with-credential]]
+            [amazonica.aws.ec2 :as ec2]
             [amazonica.aws.cloudformation :as cf]
             [clojure.tools.logging :as log]))
 
@@ -21,6 +22,19 @@
                           "Value" team-name}]}
    })
 
+(defn- dhcp-options [name-servers]
+  {"Type" "AWS::EC2::DHCPOptions"
+   "Properties" {"DomainNameServers" name-servers
+                 "Tags" [{"Key" "Name"
+                          "Value" "DNS"}]}
+   })
+
+(defn- dhcp-options-association [vpc-id dhcp-options-id]
+  {"Type" "AWS::EC2::VPCDHCPOptionsAssociation"
+   "Properties" {"DhcpOptionsId" {"Ref" dhcp-options-id}
+                 "VpcId" {"Ref" vpc-id}}
+   })
+
 (defn- internet-gateway []
   {"Type" "AWS::EC2::InternetGateway"
    "Properties" {"Tags" [{"Key" "Name"
@@ -34,7 +48,7 @@
    })
 
 (defn- vpn-gateway-attachment [vpn-gateway-id]
-  {"Type" "AWS::EC2::VPCGatewayAttachment",
+  {"Type" "AWS::EC2::VPCGatewayAttachment"
    "Properties" {"VpcId" {"Ref" "Vpc"}
                  "VpnGatewayId" {"Ref" vpn-gateway-id}}
    })
@@ -74,9 +88,6 @@
 
 (defn- subnet-public-route-table-association [subnet-id]
   (subnet-route-table-association "PublicRouteTable" subnet-id))
-
-(defn- subnet-shared-route-table-association [subnet-id]
-  (subnet-route-table-association "SharedRouteTable" subnet-id))
 
 (defn- nat-security-group [cidr-block]
   {"Type" "AWS::EC2::SecurityGroup"
@@ -194,10 +205,15 @@
                 {(str "NatEipAz" zone-index) (elastic-ip (str "NatAz" zone-index))})))
 
 (defn- setup-shared [availability-zone subnets]
-  (merge-with deny-duplicate-keys
-              (mmap (juxt subnet-id new-subnet) subnets)
-              (mmap (juxt (partial subnet-prefix-route-id "Shared")
-                          (comp subnet-shared-route-table-association subnet-id)) subnets)))
+  (let [shared-route-table (str "SharedRouteTableAz" (zone-index availability-zone))]
+    (merge-with deny-duplicate-keys
+                (mmap (juxt subnet-id new-subnet) subnets)
+                {shared-route-table (route-table (str "Shared " availability-zone) :vpc-routing true)
+                 (str "SharedVpnGatewayRoutePropagationAz" (zone-index availability-zone)) (vpn-gateway-route-propagation shared-route-table)}
+                (mmap (juxt (partial subnet-prefix-route-id "NatDefault")
+                            (comp (partial instance-route shared-route-table) (partial str "NatAz") zone-index :availability-zone)) subnets)
+                (mmap (juxt (constantly (str "SharedRouteTableAssociationAz" (zone-index availability-zone)))
+                            (comp (partial subnet-route-table-association shared-route-table) subnet-id)) subnets))))
 
 (defn- setup-private [availability-zone subnets]
   (let [private-route-table (str "PrivateRouteTableAz" (zone-index availability-zone))]
@@ -222,26 +238,31 @@
     (apply merge-with deny-duplicate-keys
            (map (partial apply availability-zone) groups))))
 
+(defn- dhcp [name-servers]
+  (if (empty? name-servers)
+    {}
+    {"DhcpOptions" (dhcp-options name-servers)
+     "DhcpOptionsAssociation" (dhcp-options-association "Vpc" "DhcpOptions")}))
+
 (defn- vpn-connection-routes [vpn-routes]
   (into {} (map-indexed (fn [index cidr-block]
                           [(str "VpnConnectionRoute" (inc index))
                            (vpn-connection-route "VpnConnection" cidr-block)]) vpn-routes)))
 
-(defn- resources [{:keys [name]} {:keys [cidr-block vpn-gateway-ip vpn-routes subnets]}]
+(defn- resources [{:keys [name]} {:keys [cidr-block vpn-gateway-ip vpn-routes name-servers subnets]}]
   (merge-with deny-duplicate-keys
               {"CloudTrail" (cloud-trail)
                "Vpc" (vpc name cidr-block)
                "InternetGateway" (internet-gateway)
                "InternetGatewayAttachment" (internet-gateway-attachment "InternetGateway")
-               "InternetGatewayRoute" (internet-gateway-route "PublicRouteTable")
                "PublicRouteTable" (route-table "Public")
-               "SharedRouteTable" (route-table "Shared" :vpc-routing true)
-               "SharedVpnGatewayRoutePropagation" (vpn-gateway-route-propagation "SharedRouteTable")
+               "PublicInternetGatewayRoute" (internet-gateway-route "PublicRouteTable")
                "NatSecurityGroup" (nat-security-group cidr-block)
                "VpnGateway" (vpn-gateway "VPN Gateway")
                "VpnGatewayAttachment" (vpn-gateway-attachment "VpnGateway")
                "CustomerGateway" (customer-gateway "Customer Gateway" vpn-gateway-ip)
                "VpnConnection" (vpn-connection "VPN Connection" "VpnGateway" "CustomerGateway")}
+              (dhcp name-servers)
               (vpn-connection-routes vpn-routes)
               (availability-zones subnets)))
 
@@ -257,19 +278,28 @@
       false)))
 
 (defn- stack-status [name]
-  (-> (cf/describe-stacks :stack-name "overlord") first :stack-status))
+  (-> (cf/describe-stacks :stack-name name) first :stack-status))
+
+(defn- delete-default-vpc []
+  (doseq [vpc-id (map :vpc-id (ec2/describe-vpcs :filters [{:name "isDefault" :values ["true"]}]))]
+    (log/info "Deleting default vpc" vpc-id)
+    (ec2/delete-vpc :vpc-id vpc-id)))
 
 (defn run [account network]
-  (if-not (stack-exists? "overlord")
-    (do
-      (log/info "Creating stack overlord")
-      (cf/create-stack :stack-name "overlord"
-                       :template-body (json/write-str (generate-template account network)))
-      (loop [v (repeat 1)]
-        (let [status (stack-status "overlord")]
-          (if (= "CREATE_COMPlETE" status)
-            (log/info "Stack creation finished")
-            (do
-              (log/info "Waiting for AWS to apply networking stack, current status is" status)
-              (recur v))))))
-    (log/info "Stack overlord already exists")))
+  ; TODO detach igw, delete igw, ... (delete-default-vpc)
+  (let [stack-name "overlord"]
+    (if-not (stack-exists? stack-name)
+      (do
+        (log/info "Creating stack overlord")
+        (cf/create-stack :stack-name stack-name
+                         :template-body (json/write-str (generate-template account network)))
+        (loop [v (repeat 1)]
+          (let [status (stack-status stack-name)]
+            (condp = status
+              "CREATE_IN_PROGRESS" (do
+                                     (log/info "Waiting for stack creation, current status is" status)
+                                     (Thread/sleep 5000)
+                                     (recur v))
+              "CREATE_COMPLETE" (log/info "Stack creation finished")
+              (throw (IllegalStateException. (str "Stack creation failed with status " status)))))))
+      (log/info "Stack overlord already exists"))))

@@ -16,7 +16,7 @@
       (log/info "Creating hosted zone" name)
       (route53/create-hosted-zone :name name
                                   :caller-reference (UUID/randomUUID)))
-    (log/info "Hosted zone already exists")))
+    (log/info "Hosted zone" name "already exists")))
 
 (defn run [{team-name :name}]
   (create-hosted-zone (str team-name ".aws.zalando."))

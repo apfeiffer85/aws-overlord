@@ -19,6 +19,7 @@
    :vpn-routes ["10.10.0.0/19"
                 "10.120.0.0/21"
                 "10.200.0.0/20"]
+   :name-servers ["1.2.3.4"]
    :private-key "s3cr3t"
    :subnets #{(new-subnet region "a" range 1)
               (new-subnet region "b" range 2)

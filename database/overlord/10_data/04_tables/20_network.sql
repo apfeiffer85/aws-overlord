@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS network (
   cidr_block     TEXT    NOT NULL,
   vpn_gateway_ip TEXT    NOT NULL,
   vpn_routes     TEXT [] NOT NULL,
+  name_servers   TEXT [] NOT NULL,
   account_id     INT     NOT NULL,
   FOREIGN KEY (account_id) REFERENCES account (id) ON DELETE CASCADE
 );
