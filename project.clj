@@ -28,6 +28,7 @@
   :plugins [[lein-db "0.1.0"]]
 
   :main aws-overlord.core
+  :aot :all
   :uberjar-name "aws-overlord.jar"
   :profiles {:uberjar {:resource-paths ["swagger-ui"]}
 

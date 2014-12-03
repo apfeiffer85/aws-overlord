@@ -81,36 +81,11 @@ Based on the bits of the VPC CIDR block:
 
 ![API](docs/api.png)
 
-## Data
-
-### Account
-
-- team name
-- account id
-- key id
-- access key
-- key pair (generated)
-- server certificate (generated)
-- networks
-    - region
-    - cidr block
-    - subnets (generated)
-        - availability zone
-        - cidr block
-        - type (shared, private, public)
-
-### Access
-
-- user name (LDAP)
-- instance-id
-- timestamp?!
-- comment? (Ticket ID)
-
 ## Development
 
 Use [Leinignen](http://leiningen.org/):
 
-    $ lein run
+    $ lein with-profile log run
 
 or run the test suite
 
@@ -122,3 +97,8 @@ or with a REPL:
     $ lein repl
     > (require '[com.stuartsierra.component :as component])
     > (def system (component/start (new-system (new-config nil))))
+
+or build a jar and run it
+
+    $ lein with-profile prod uberjar
+    $ java -jar target/aws-overlord.jar
