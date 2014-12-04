@@ -1,5 +1,0 @@
-{:http-port 8080
- :database {:subprotocol "postgresql"
-            :subname "//localhost:5435/overlord"
-            :user "postgres"
-            :password "postgres"}}

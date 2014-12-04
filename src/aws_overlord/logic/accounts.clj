@@ -22,11 +22,11 @@
       false)))
 
 (defn- create-key-pair []
-  (when (key-pair-exists? "overlord")
-    (log/info "Deleting existing key pair")
-    (ec2/delete-key-pair :key-name "overlord"))
-  (log/info "Creating key pair")
-  (:key-material (ec2/create-key-pair :key-name "overlord")))
+  (let [key-pair-name "overlord"]
+    (when (key-pair-exists? key-pair-name)
+      (throw (IllegalStateException. (str "Key pair " key-pair-name " already exists"))))
+    (log/info "Creating key pair")
+    (:key-material (ec2/create-key-pair :key-name key-pair-name))))
 
 (defn- new-subnet [type availability-zone cidr-block]
   {:type type

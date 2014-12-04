@@ -20,5 +20,5 @@
       (.stop server)
       this)))
 
-(defn ^HTTPServer new-http-server [port]
-  (map->HTTPServer {:port port}))
+(defn ^HTTPServer new-http-server [{:keys [port] :or {port 8080}}]
+  (map->HTTPServer {:port (if (number? port) port (Integer/parseInt port))}))

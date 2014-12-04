@@ -130,5 +130,13 @@
     (map (partial select-account database) (jdbc/query database (select * :account)
                                                        :row-fn map-account-inbound))))
 
-(defn ^Storage new-storage [database]
-  (map->Storage {:database database}))
+(defn ^Storage new-storage [{:keys [host port name user password]
+                             :or {host "localhost"
+                                  port 5432
+                                  name "overlord"
+                                  user "postgres"
+                                  password "postgres"}}]
+  (map->Storage {:database {:subprotocol "postgresql"
+                            :subname (str "//" host ":" port "/" name)
+                            :user user
+                            :password password}}))

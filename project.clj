@@ -7,6 +7,7 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  ; lifecycle management
                  [com.stuartsierra/component "0.2.2"]
+                 [environ "1.0.0"]
                  ; REST APIs
                  [metosin/compojure-api "0.16.4"]
                  [metosin/ring-http-response "0.5.2"]
@@ -25,20 +26,24 @@
                  [org.clojure/java.jdbc "0.3.6"]
                  [java-jdbc/dsl "0.1.1"]]
 
-  :plugins [[lein-db "0.1.0"]]
+  :plugins [[lein-db "0.1.0"]
+            [lein-environ "1.0.0"]]
 
   :main aws-overlord.core
   :aot :all
   :uberjar-name "aws-overlord.jar"
-  :profiles {:uberjar {:resource-paths ["swagger-ui"]}
+  :profiles {
+             :log {:dependencies [[org.apache.logging.log4j/log4j-core "2.1"]
+                                  [org.apache.logging.log4j/log4j-slf4j-impl "2.1"]]}
 
-             :log {:dependencies [[org.slf4j/slf4j-simple "1.7.7"]]}
-
-             :prod {:dependencies [[org.apache.logging.log4j/log4j-core "2.1"]
-                                   [org.apache.logging.log4j/log4j-slf4j-impl "2.1"]]}
+             :no-log {:dependencies [[org.slf4j/slf4j-nop "1.7.7"]]}
 
              :dev {:dependencies [[javax.servlet/servlet-api "2.5"]]}
 
+             ; TODO :run?!
+
              :test [:log]
 
-             :repl [{:dependencies [[org.slf4j/slf4j-nop "1.7.7"]]}]})
+             :repl [:no-log]
+
+             :uberjar [:log {:resource-paths ["swagger-ui"]}]})

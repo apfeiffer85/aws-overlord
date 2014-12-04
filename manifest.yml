@@ -1,0 +1,4 @@
+application_name: overlord
+team_name: Zalando/Platform
+stateful: false
+exposed_ports: [8080]

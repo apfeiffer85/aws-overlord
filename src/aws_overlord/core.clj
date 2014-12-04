@@ -1,8 +1,8 @@
 (ns aws-overlord.core
   (:gen-class)
   (:require [com.stuartsierra.component :as component :refer [using]]
-            [clojure.edn :as edn]
-            [clojure.java.io :as io]
+            [environ.core :refer [env]]
+            [clojure.string :refer [replace-first]]
             [aws-overlord.aws]
             ; needed for set-root-unwrapping!
             [aws-overlord.enforcer :refer [new-enforcer]]
@@ -11,20 +11,31 @@
             [aws-overlord.data.storage :refer [new-storage]]
             [clojure.tools.logging :as log]))
 
-(defn- new-config [config-file]
-  (edn/read-string (slurp (or config-file (io/resource "config.edn")))))
+(defn- strip [namespace k]
+  (keyword (replace-first (name k) (str namespace "-") "")))
+
+(defn- namespaced [config namespace]
+  (into {} (map (fn [[k v]] [(strip namespace k) v])
+                (filter (fn [[k v]]
+                          (.startsWith (name k) (str namespace "-")))
+                        config))))
+
+(defn- configs [config namespaces]
+  (let [namespaced-configs (into {} (map (juxt keyword (partial namespaced config)) namespaces))]
+    (doseq [[namespace namespaced-config] namespaced-configs]
+      (log/info "Configuring" namespace "with" namespaced-config))
+    namespaced-configs))
 
 (defn- new-system [config]
-  (let [{:keys [http-port database]} config]
+  (let [{:keys [http db]} (configs config ["http" "db"])]
     (component/system-map
-      :http-server (using (new-http-server http-port) [:router])
+      :http-server (using (new-http-server http) [:router])
       :router (using (new-router) [:storage :enforcer])
       :enforcer (using (new-enforcer) [:storage])
-      :storage (new-storage database))))
+      :storage (new-storage db))))
 
 (defn -main [& args]
-  (let [config (new-config (first args))
-        system (new-system config)]
+  (let [system (new-system env)]
 
     (.addShutdownHook
       (Runtime/getRuntime)
