@@ -1,4 +1,4 @@
-(ns aws-overlord.storage-test
+(ns aws-overlord.data.storage-test
   (:require [clojure.test :refer :all]
             [aws-overlord.data.storage :refer :all]
             [com.stuartsierra.component :refer :all]
@@ -41,7 +41,7 @@
 
 (defn- with-db [test]
   (let [database {:subprotocol "postgresql"
-                  :subname "//localhost:5435/overlord"
+                  :subname "//localhost:5432/overlord"
                   :user "postgres"
                   :password "postgres"}
         system (start-system {:storage (new-storage database)})]

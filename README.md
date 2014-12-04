@@ -39,13 +39,16 @@ Overlord will create the following setup:
 
 ## Development
 
+Setup local database:
+
+    $ cat database/*.sql | psql overlord
+
 Use [Leinignen](http://leiningen.org/):
 
     $ lein with-profile log run
 
-or run the test suite
+or run the test suite (this will truncate your local database)
 
-    $ lein db
     $ lein test
 
 or with a REPL:
