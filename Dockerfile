@@ -1,4 +1,4 @@
-FROM dockerfile/java:oracle-java8
+FROM docker-registry.hackweek.aws.zalando/tsarnowski/zalando-java:8u25-1
 
 ADD target/aws-overlord.jar .
 

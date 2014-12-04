@@ -52,6 +52,17 @@
   (routes/with-routes
 
     (swaggered
+      "System"
+      :description "Basic system operations"
+
+      (GET*
+        "/health" []
+        :summary "Performs a health check"
+        (log/info "Checking health")
+        ; TODO perform a database connection
+        {:status 200}))
+
+    (swaggered
       "Accounts"
       :description "Account management operations"
 
