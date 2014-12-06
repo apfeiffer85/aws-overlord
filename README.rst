@@ -15,6 +15,6 @@ AWS Overlord
    :alt: Coverage Status
 
 Overlord is an AWS account management tool. It supports one-time configuration, auditing
-    and serves as a security gateway.
+and serves as a security gateway.
 
 Read the documentation over at `readthedocs.org <http://aws-overlord.readthedocs.org>`_.
