@@ -1,0 +1,14 @@
+language: clojure
+jdk:
+    - openjdk7
+    - oraclejdk7
+    - oraclejdk8
+addons:
+  postgresql: "9.3"
+before_script:
+    - psql -c 'CREATE DATABASE overlord;' -U postgres
+after_success:
+  - coveralls
+notifications:
+    email:
+        on_failure: change

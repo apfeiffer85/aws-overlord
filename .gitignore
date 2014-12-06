@@ -14,7 +14,7 @@ pom.xml.asc
 *.iml
 
 # generated documentation
-/doc/index.html
+/docs/_build
 
 # dev config
 /config.edn

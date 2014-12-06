@@ -26,8 +26,6 @@
                  [org.clojure/java.jdbc "0.3.6"]
                  [java-jdbc/dsl "0.1.1"]]
 
-  :plugins [[lein-environ "1.0.0"]]
-
   :main aws-overlord.core
   :aot :all
   :uberjar-name "aws-overlord.jar"

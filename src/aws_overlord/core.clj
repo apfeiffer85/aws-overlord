@@ -2,32 +2,16 @@
   (:gen-class)
   (:require [com.stuartsierra.component :as component :refer [using]]
             [environ.core :refer [env]]
-            [clojure.string :refer [replace-first]]
             [aws-overlord.aws]
             ; needed for set-root-unwrapping!
             [aws-overlord.enforcer :refer [new-enforcer]]
             [aws-overlord.api.http-server :refer [new-http-server]]
             [aws-overlord.api.router :refer [new-router]]
             [aws-overlord.data.storage :refer [new-storage]]
-            [clojure.tools.logging :as log]))
-
-(defn- strip [namespace k]
-  (keyword (replace-first (name k) (str namespace "-") "")))
-
-(defn- namespaced [config namespace]
-  (into {} (map (fn [[k v]] [(strip namespace k) v])
-                (filter (fn [[k v]]
-                          (.startsWith (name k) (str namespace "-")))
-                        config))))
-
-(defn- configs [config namespaces]
-  (let [namespaced-configs (into {} (map (juxt keyword (partial namespaced config)) namespaces))]
-    (doseq [[namespace namespaced-config] namespaced-configs]
-      (log/info "Configuring" namespace "with" namespaced-config))
-    namespaced-configs))
+            [aws-overlord.config :as config]))
 
 (defn- new-system [config]
-  (let [{:keys [http db]} (configs config ["http" "db"])]
+  (let [{:keys [http db]} (config/parse config ["http" "db"])]
     (component/system-map
       :http-server (using (new-http-server http) [:router])
       :router (using (new-router) [:storage :enforcer])
