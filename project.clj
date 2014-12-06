@@ -25,6 +25,8 @@
                  [org.clojure/data.json "0.2.5"]
                  [org.clojure/java.jdbc "0.3.6"]
                  [java-jdbc/dsl "0.1.1"]]
+  
+  :plugins [[lein-cloverage "1.0.2"]]
 
   :main aws-overlord.core
   :aot :all
