@@ -1,15 +1,15 @@
-CREATE TABLE IF NOT EXISTS account (
-  id          SERIAL PRIMARY KEY,
-  name        TEXT NOT NULL,
-  aws_id      TEXT NOT NULL,
-  key_id      TEXT NOT NULL,
-  access_key  TEXT NOT NULL
+CREATE TABLE account (
+  id         SERIAL PRIMARY KEY,
+  name       TEXT NOT NULL,
+  aws_id     TEXT NOT NULL,
+  key_id     TEXT NOT NULL,
+  access_key TEXT NOT NULL
 );
 
 CREATE UNIQUE INDEX ON account (name);
 CREATE UNIQUE INDEX ON account (aws_id);
 
-CREATE TABLE IF NOT EXISTS network (
+CREATE TABLE network (
   id             SERIAL PRIMARY KEY,
   region         TEXT    NOT NULL,
   private_key    TEXT    NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS network (
 
 CREATE UNIQUE INDEX ON network (account_id, region);
 
-CREATE TABLE IF NOT EXISTS subnet (
+CREATE TABLE subnet (
   type              TEXT NOT NULL,
   availability_zone TEXT NOT NULL,
   cidr_block        TEXT NOT NULL,

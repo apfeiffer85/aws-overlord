@@ -7,9 +7,18 @@ Prerequisites
 
 * An AWS account
 * Key ID and Secret Access Key
+* PostgreSQL database
 
 Installation
 ============
+
+Create the schema
+
+.. code-block:: bash
+
+    $ psql -f resources/database/schema.sql overlord
+
+and run the jar file
 
 .. code-block:: bash
 

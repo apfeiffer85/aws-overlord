@@ -2,6 +2,11 @@
 Development
 ===========
 
+Installing
+==========
+
+Docker!
+
 Prerequisites
 =============
 - Java
@@ -16,24 +21,8 @@ up manually:
 
 .. code-block:: bash
 
-    $ cat resources/database/schema.sql | psql overlord
+    $ psql -f resources/database/schema.sql overlord
 
-Running
-=======
-
-You can run the main directly
-
-.. code-block:: bash
-
-    $ lein with-profile log run
-
-or with a REPL:
-
-.. code-block:: bash
-
-    $ lein repl
-    > (require '[com.stuartsierra.component :refer :all])
-    > (def system (start (new-system {})))
 
 Testing
 =======
