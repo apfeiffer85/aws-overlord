@@ -1,4 +1,4 @@
-(defproject aws-overlord "0.1.0-SNAPSHOT"
+(defproject aws-overlord "0.1.0"
   :description "An AWS account coordinator."
 
   :license {:name "Apache License"
