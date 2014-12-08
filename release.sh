@@ -11,10 +11,6 @@ version=$1
 
 lein vcs assert-committed
 
-echo ${version} > VERSION
-git add VERSION
-git commit -m "Bumped version to $version"
-
 lein clean
 lein test
 
