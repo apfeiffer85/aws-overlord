@@ -1,8 +1,12 @@
 (defproject aws-overlord "0.1.0"
   :description "An AWS account coordinator."
 
+  :url "https://github.com/zalando/aws-overlord"
+
   :license {:name "Apache License"
             :url "http://www.apache.org/licenses/"}
+
+  :scm {:url "git@github.com:zalando/aws-overlord.git"}
 
   :dependencies [[org.clojure/clojure "1.6.0"]
                  ; lifecycle management
@@ -25,8 +29,16 @@
                  [org.clojure/data.json "0.2.5"]
                  [org.clojure/java.jdbc "0.3.6"]
                  [java-jdbc/dsl "0.1.1"]]
-  
+
   :plugins [[lein-cloverage "1.0.2"]]
+
+  :release-tasks [["vcs" "assert-committed"]
+                  ["change" "version" "leiningen.release/bump-version" "release"]
+                  ["vcs" "commit"]
+                  ["vcs" "tag"]
+                  ["change" "version" "leiningen.release/bump-version"]
+                  ["vcs" "commit"]
+                  ["vcs" "push"]]
 
   :main aws-overlord.core
   :aot :all
