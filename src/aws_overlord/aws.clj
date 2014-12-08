@@ -18,8 +18,8 @@
      (log/info "Current region set to" ~region)
      (with-credential (credentials) ~@body)))
 
-(defmacro login-to [{:keys [name key-id access-key]} & body]
-  `(binding [*key-id* ~key-id
-             *access-key* ~access-key]
-     (log/info "Current account set to" ~name)
+(defmacro login-to [account & body]
+  `(binding [*key-id* (:key-id ~account)
+             *access-key* (:access-key ~account)]
+     (log/info "Current account set to" (:name ~account))
      (with-credential (credentials) ~@body)))
