@@ -15,7 +15,7 @@ version=$1
 
 lein vcs assert-committed
 
-echo -n ${version} > VERSION
+printf ${version} > VERSION
 git add VERSION
 git commit -m "Bumped version to $version"
 
@@ -25,7 +25,7 @@ lein test
 lein uberjar
 
 git tag ${version}
-git push --tags
+git push --follow-tags
 
 docker build -t zalando/overlord:${version} .
 docker push zalando/overlord:${version}
