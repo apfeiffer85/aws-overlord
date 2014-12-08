@@ -15,8 +15,12 @@ version=$1
 
 lein vcs assert-committed
 
+lein change version ${version}
+git add project.clj
+
 printf ${version} > VERSION
 git add VERSION
+
 git commit -m "Bumped version to $version"
 
 lein clean

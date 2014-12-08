@@ -1,4 +1,4 @@
-(defproject aws-overlord (slurp "VERSION")
+(defproject aws-overlord "0.3"
   :description "An AWS account coordinator."
 
   :url "https://github.com/zalando/aws-overlord"
@@ -25,7 +25,7 @@
                  [amazonica "0.2.30" :exclusions [joda-time commons-logging]]
                  [joda-time "2.5"]
                  ; storage
-                 [postgresql/postgresql "8.4-702.jdbc4"]
+                 [postgresql "9.3-1102.jdbc41"]
                  [org.clojure/data.json "0.2.5"]
                  [org.clojure/java.jdbc "0.3.6"]
                  [java-jdbc/dsl "0.1.1"]]
