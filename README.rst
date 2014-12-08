@@ -53,9 +53,10 @@ Releasing
 
     $ lein test
     $ lein uberjar
-    $ lein release :patch
+    $ git tag 0.2
+    $ git push --tags
     $ docker build -t zalando/overlord:0.2 .
-    $ docker push zalando/overlord:0.1
+    $ docker push zalando/overlord:0.2
 
 Documentation
 =============
@@ -68,3 +69,9 @@ Building HTML documentation locally:
 
    $ cd docs
    $ make html
+
+TODO
+====
+
+- AWS mocks for testing
+- multi-region support
