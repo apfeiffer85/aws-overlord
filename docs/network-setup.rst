@@ -28,55 +28,55 @@ The VPC's network will be split into three different types:
     - 50% Private
 
 The resulting networks are split into concrete subnets across all availability zones of the specified region. The
-following tables shows the process for the VPC 10.144.0.0/19 on eu-west-1:
+following tables shows the process for the VPC 10.2.0.0/19 on eu-west-1:
 
 +---------------------------+------+----------------+
 | Name                      | IPs  | CIDR block     |
 +---------------------------+------+----------------+
-| VPC                       | 8192 | 10.144.0.0/19  |
+| VPC                       | 8192 | 10.2.0.0/19    |
 |                           |      |                |
-| Private Subnets           | 2048 | 10.144.0.0/21  |
+| Private Subnets           | 2048 | 10.2.0.0/21    |
 |                           |      |                |
-| Shared Subnets            | 2048 | 10.144.8.0/21  |
+| Shared Subnets            | 2048 | 10.2.8.0/21    |
 |                           |      |                |
-| Shared Subnets            | 4096 | 10.144.16.0/20 |
+| Shared Subnets            | 4096 | 10.2.16.0/20   |
 |                           |      |                |
-| Public Subnet eu-west-1a  | 256  | 10.144.0.0/24  |
+| Public Subnet eu-west-1a  | 256  | 10.2.0.0/24    |
 |                           |      |                |
-| Public Subnet eu-west-1b  | 256  | 10.144.1.0/24  |
+| Public Subnet eu-west-1b  | 256  | 10.2.1.0/24    |
 |                           |      |                |
-| Public Subnet eu-west-1c  | 256  | 10.144.2.0/24  |
+| Public Subnet eu-west-1c  | 256  | 10.2.2.0/24    |
 |                           |      |                |
-| Shared Subnet eu-west-1a  | 256  | 10.144.8.0/24  |
+| Shared Subnet eu-west-1a  | 256  | 10.2.8.0/24    |
 |                           |      |                |
-| Shared Subnet eu-west-1b  | 256  | 10.144.9.0/24  |
+| Shared Subnet eu-west-1b  | 256  | 10.2.9.0/24    |
 |                           |      |                |
-| Shared Subnet eu-west-1c  | 256  | 10.144.10.0/24 |
+| Shared Subnet eu-west-1c  | 256  | 10.2.10.0/24   |
 |                           |      |                |
-| Private Subnet eu-west-1a | 512  | 10.144.16.0/23 |
+| Private Subnet eu-west-1a | 512  | 10.2.16.0/23   |
 |                           |      |                |
-| Private Subnet eu-west-1b | 512  | 10.144.18.0/23 |
+| Private Subnet eu-west-1b | 512  | 10.2.18.0/23   |
 |                           |      |                |
-| Private Subnet eu-west-1c | 512  | 10.144.20.0/23 |
+| Private Subnet eu-west-1c | 512  | 10.2.20.0/23   |
 +---------------------------+------+----------------+
 
 ..
     generated with http://ascii.gallery/table
 
     Name,IPs,CIDR Block
-    VPC,8192,10.144.0.0/19
-    Private Subnets,2048,10.144.0.0/21
-    Shared Subnets,2048,10.144.8.0/21
-    Shared Subnets,4096,10.144.16.0/20
-    Public Subnet eu-west-1a,256,10.144.0.0/24
-    Public Subnet eu-west-1b,256,10.144.1.0/24
-    Public Subnet eu-west-1c,256,10.144.2.0/24
-    Shared Subnet eu-west-1a,256,10.144.8.0/24
-    Shared Subnet eu-west-1b,256,10.144.9.0/24
-    Shared Subnet eu-west-1c,256,10.144.10.0/24
-    Private Subnet eu-west-1a,512,10.144.16.0/23
-    Private Subnet eu-west-1b,512,10.144.18.0/23
-    Private Subnet eu-west-1c,512,10.144.20.0/23
+    VPC,8192,10.2.0.0/19
+    Private Subnets,2048,10.2.0.0/21
+    Shared Subnets,2048,10.2.8.0/21
+    Shared Subnets,4096,10.2.16.0/20
+    Public Subnet eu-west-1a,256,10.2.0.0/24
+    Public Subnet eu-west-1b,256,10.2.1.0/24
+    Public Subnet eu-west-1c,256,10.2.2.0/24
+    Shared Subnet eu-west-1a,256,10.2.8.0/24
+    Shared Subnet eu-west-1b,256,10.2.9.0/24
+    Shared Subnet eu-west-1c,256,10.2.10.0/24
+    Private Subnet eu-west-1a,512,10.2.16.0/23
+    Private Subnet eu-west-1b,512,10.2.18.0/23
+    Private Subnet eu-west-1c,512,10.2.20.0/23
 
 
 
