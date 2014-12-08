@@ -16,8 +16,5 @@ pom.xml.asc
 # generated documentation
 /docs/_build
 
-# release version file
-/VERSION
-
 # generated
 /resources/generated.json

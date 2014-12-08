@@ -51,14 +51,7 @@ Releasing
 
 .. code-block:: bash
 
-    $ lein test
-    $ VERSION=0.2
-    $ echo $VERSION > version
-    $ lein uberjar
-    $ git tag $VERSION
-    $ git push --tags
-    $ docker build -t zalando/overlord:$VERSION .
-    $ docker push zalando/overlord:$VERSION
+    $ ./release.sh 0.1
 
 Documentation
 =============

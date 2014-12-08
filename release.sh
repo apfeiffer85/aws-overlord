@@ -7,9 +7,17 @@ fi
 
 set -xe
 
+lein version
+git --version
+docker version
+
 version=$1
 
 lein vcs assert-committed
+
+echo -n ${version} > VERSION
+git add VERSION
+git commit -m "Bumped version to $version"
 
 lein clean
 lein test
