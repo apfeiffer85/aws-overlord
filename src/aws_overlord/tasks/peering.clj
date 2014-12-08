@@ -1,6 +1,6 @@
 (ns aws-overlord.tasks.peering
-  (:require [amazonica.aws.ec2 :as ec2]
-            [amazonica.core :refer [with-credential]]
+  (:require [aws-overlord.aws :refer :all]
+            [amazonica.aws.ec2 :as ec2]
             [clojure.tools.logging :as log]))
 
 (defn- filter-pair [key value]
@@ -49,18 +49,17 @@
   (log/info "Accepting VPC peering connection" connection-id)
   (ec2/accept-vpc-peering-connection :vpc-peering-connection-id connection-id))
 
-(defn- peer [{new-cidr-block :cidr-block :keys [region]}
-             {:keys [aws-id key-id access-key]} {existing-cidr-block :cidr-block}]
+(defn- peer [{new-cidr-block :cidr-block}
+             {:keys [aws-id] :as account} {existing-cidr-block :cidr-block}]
   (let [vpc-id (find-vpc-id new-cidr-block)
-        peer-vpc-id (with-credential [key-id access-key region] (find-vpc-id existing-cidr-block))
+        peer-vpc-id (login-to account (find-vpc-id existing-cidr-block))
         connection-id (create-peering-connection vpc-id peer-vpc-id aws-id)]
 
-    (with-credential [key-id access-key region]
-                     (accept-peering-connection connection-id)
-                     (route connection-id new-cidr-block))
+    (login-to account
+              (accept-peering-connection connection-id)
+              (route connection-id new-cidr-block))
 
     (route connection-id existing-cidr-block)))
-
 
 (defn- find-network-by-region [networks region]
   (->> networks
@@ -79,7 +78,7 @@
            :as existing-account} existing-accounts]
     (when-let [{existing-cidr-block :cidr-block :as existing-network} (find-network-by-region existing-networks region)]
       (if-not (peered? new-id new-cidr-block existing-id existing-cidr-block)
-        (do
-          (log/info "Peering" new-name "and" existing-name)
-          (peer new-network existing-account existing-network))
+        (switch-to region
+                   (log/info "Peering" new-name "and" existing-name)
+                   (peer new-network existing-account existing-network))
         (log/info new-name "and" existing-name "are already peered")))))

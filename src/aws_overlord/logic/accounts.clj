@@ -1,11 +1,15 @@
 (ns aws-overlord.logic.accounts
   (:import (com.amazonaws AmazonServiceException))
-  (:require [aws-overlord.net :refer :all]
+  (:require [aws-overlord.aws :refer :all]
+            [aws-overlord.net :refer :all]
+            [aws-overlord.tasks.security :as security]
+            [aws-overlord.tasks.dns :as dns]
+            [aws-overlord.tasks.networking :as networking]
+            [aws-overlord.tasks.peering :as peering]
+            [clojure.tools.logging :as log]
             [clojure.string :refer [split]]
-            [amazonica.core :refer [with-credential]]
             [amazonica.aws.ec2 :as ec2]
-            [amazonica.aws.identitymanagement :as iam]
-            [clojure.tools.logging :as log]))
+            [amazonica.aws.identitymanagement :as iam]))
 
 (defn- list-availability-zones []
   (mapv :zone-name (ec2/describe-availability-zones)))
@@ -44,20 +48,38 @@
      :shared shared
      :private private}))
 
-(defn- update-network [{:keys [key-id access-key]} {:keys [region cidr-block] :as network}]
-  (with-credential
-    [key-id access-key region]
-    (let [cidr-blocks (generate-typed-cidr-blocks cidr-block)
-          availability-zones (list-availability-zones)
-          generate-subnets-in-az (partial generate-subnets availability-zones)]
-      (assoc network
-             :private-key (create-key-pair)
-             :subnets (apply concat (mapv generate-subnets-in-az cidr-blocks))))))
+(defn- update-network [{:keys [region cidr-block] :as network}]
+  (switch-to region
+             (let [cidr-blocks (generate-typed-cidr-blocks cidr-block)
+                   availability-zones (list-availability-zones)
+                   generate-subnets-in-az (partial generate-subnets availability-zones)]
+               (assoc network
+                      :private-key (create-key-pair)
+                      :subnets (apply concat (mapv generate-subnets-in-az cidr-blocks))))))
 
-(defn prepare [name {:keys [key-id access-key networks] :as account}]
-  (with-credential
-    [key-id access-key]
-    (assoc account
-           :name name
-           :networks (mapv (partial update-network account) networks)
-           :aws-id (get-account-id))))
+(defn prepare [name {:keys [networks] :as account}]
+  (login-to account
+            (assoc account
+                   :name name
+                   :networks (mapv update-network networks)
+                   :aws-id (get-account-id))))
+
+(defmacro background [& body]
+  `(future
+     (try
+       ~@body
+       (catch Exception e#
+         (log/error e# "Error in background thread")))))
+
+(defn configure [{:keys [networks] :as account} existing-accounts]
+  (background
+    (login-to account
+              (log/info "Configuring account" (:name account))
+              (log/info "Performing account-wide actions")
+              (security/run account)
+              (dns/run account))
+    (doseq [{:keys [region] :as network} networks]
+      (switch-to region
+                 (log/info "Performing region-wide actions in" region)
+                 (networking/run account network)
+                 (peering/run account network existing-accounts)))))

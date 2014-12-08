@@ -2,7 +2,6 @@
   (:import (com.amazonaws AmazonServiceException))
   (:require [clojure.string :refer [capitalize]]
             [clojure.data.json :as json]
-            [amazonica.core :refer [with-credential]]
             [amazonica.aws.ec2 :as ec2]
             [amazonica.aws.cloudformation :as cf]
             [clojure.tools.logging :as log]))

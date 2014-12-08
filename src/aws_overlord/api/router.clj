@@ -6,10 +6,10 @@
             [ring.util.http-response :refer :all]
             [schema.core :as s]
             [aws-overlord.logging :refer [with-mdc]]
-            [aws-overlord.enforcer :refer [enforce]]
             [aws-overlord.data.storage :refer :all]
             [aws-overlord.logic.accounts :as accounts]
-            [aws-overlord.net :refer :all]))
+            [aws-overlord.net :refer :all]
+            [aws-overlord.data.storage :as storage]))
 
 (s/defschema AccountView
              {:name String
@@ -31,7 +31,7 @@
                           :vpn-routes [String]
                           :name-servers [String]}]})
 
-(defrecord Router [storage enforcer])
+(defrecord Router [storage])
 
 (defn- outbound-subnet [subnet]
   (-> subnet
@@ -48,7 +48,7 @@
       (dissoc :id :key-id :access-key :aws-id)
       (update-in [:networks] (partial mapv outbound-network))))
 
-(defn- api-routes [router]
+(defn- api-routes [{:keys [storage]}]
   (routes/with-routes
 
     (swaggered
@@ -73,27 +73,25 @@
         :return AccountView
         :body [account AccountCreation]
         (log/info "Configuring account" name)
-        (let [{:keys [storage enforcer]} router]
+        (let [existing-accounts (storage/all-accounts storage)]
           (insert-account storage (accounts/prepare name account))
-          (let [saved-account (account-by-name storage name)]
-            (enforce enforcer saved-account)
+          (let [new-account (account-by-name storage name)]
+            (accounts/configure new-account existing-accounts)
             {:status 202
-             :body (outbound saved-account)})))
+             :body (outbound new-account)})))
 
       (GET*
         "/accounts" []
         :summary "Retrieves all accounts"
         :return [AccountView]
-        (let [{:keys [storage]} router]
-        {:status 200 :body (mapv outbound (all-accounts storage))}))
+        {:status 200 :body (mapv outbound (all-accounts storage))})
 
       (GET*
         "/accounts/:name" []
         :summary "Retrieves an account"
         :path-params [name :- String]
         :return AccountView
-        (let [{:keys [storage]} router
-              account (account-by-name storage name)]
+        (let [account (account-by-name storage name)]
           (if account
             {:status 200 :body (outbound account)}
             {:status 404}))))

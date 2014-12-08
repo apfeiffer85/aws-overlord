@@ -4,7 +4,6 @@
             [environ.core :refer [env]]
             [aws-overlord.aws]
             ; needed for set-root-unwrapping!
-            [aws-overlord.enforcer :refer [new-enforcer]]
             [aws-overlord.api.http-server :refer [new-http-server]]
             [aws-overlord.api.router :refer [new-router]]
             [aws-overlord.data.storage :refer [new-storage]]
@@ -14,8 +13,7 @@
   (let [{:keys [http db]} (config/parse config ["http" "db"])]
     (component/system-map
       :http-server (using (new-http-server http) [:router])
-      :router (using (new-router) [:storage :enforcer])
-      :enforcer (using (new-enforcer) [:storage])
+      :router (using (new-router) [:storage])
       :storage (new-storage db))))
 
 (defn -main [& args]
