@@ -46,6 +46,17 @@ Running tests
 
     $ lein test
 
+Releasing
+=========
+
+.. code-block:: bash
+
+    $ lein test
+    $ lein uberjar
+    $ lein release :patch
+    $ docker build -t zalando/overlord:0.2 .
+    $ docker push zalando/overlord:0.1
+
 Documentation
 =============
 

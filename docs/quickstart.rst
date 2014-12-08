@@ -31,13 +31,13 @@ Configuration
 =============
 
 Configuration is done via system properties or environment variables.
-Configuration entries can either be lower-cased and dot-separated system properties or
+Configuration entries can either be lower-cased and dot-separated system properties
 
 .. code-block:: bash
 
     $ java -D http.port=80 -jar aws-overlord.jar
     
-upper-underscore environment variables:
+or upper-underscore environment variables:
     
 .. code-block:: bash
 
@@ -60,3 +60,29 @@ db.password  no        postgres
 Setting up an Account
 =====================
 
+http://localhost:8080
+
+.. code-block:: json
+
+    {
+      "key-id": "",
+      "access-key": "",
+      "networks": [
+        {
+          "vpn-gateway-ip": "",
+          "vpn-routes": [
+            ""
+          ],
+          "region": "",
+          "name-servers": [
+            ""
+          ],
+          "cidr-block": ""
+        }
+      ]
+    }
+
+
+.. code-block:: bash
+
+    $ curl --header "Content-Type: application/json" --data @account.json http://localhost:8080/accounts/foo
