@@ -12,18 +12,18 @@ Prerequisites
 Installation
 ============
 
-Create the schema
-
 .. code-block:: bash
 
     $ psql -f resources/database/schema.sql overlord
-
-and run the jar file
 
 .. code-block:: bash
 
     $ lein uberjar
     $ java -jar target/aws-overlord.jar
+
+.. code-block:: bash
+
+    $ docker run -d -p 8080:8080 zalando/overlord
 
 .. _configuration:
 
@@ -56,3 +56,7 @@ db.name      no        overlord
 db.user      no        postgres 
 db.password  no        postgres 
 ===========  ========  =============
+
+Setting up an Account
+=====================
+

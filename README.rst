@@ -20,14 +20,9 @@ and serves as a security gateway.
 Requirements
 ============
 
-- Java
+- Java 1.7+
 - `Leiningen <http://leiningen.org/>`_
 - PostgreSQL 9.3+
-- Schema:
-
-.. code-block:: bash
-
-    $ psql -f resources/database/schema.sql overlord
 
 Building
 ========

@@ -10,8 +10,6 @@ Contents:
     Quickstart <quickstart>
     Network Setup <network-setup>
     Troubleshooting <troubleshooting>
-    Development <development>
-
 
 Indices and tables
 ==================
