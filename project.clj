@@ -40,6 +40,8 @@
                   ["vcs" "commit"]
                   ["vcs" "push"]]
 
+  :aliases {"cloverage" ["with-profile" "test" "cloverage"]}
+
   :main aws-overlord.core
   :aot :all
   :uberjar-name "aws-overlord.jar"

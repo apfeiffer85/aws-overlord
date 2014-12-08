@@ -14,7 +14,7 @@ before_script:
   - psql -c 'CREATE DATABASE overlord;' -U postgres
   - psql -f resources/database/schema.sql -U postgres overlord
 
-script: CLOVERAGE_VERSION=1.0.4-SNAPSHOT lein with-profile test cloverage --coveralls
+script: CLOVERAGE_VERSION=1.0.4-SNAPSHOT lein cloverage --coveralls
 
 after_script:
   - curl -F 'json_file=@target/coverage/coveralls.json' https://coveralls.io/api/v1/jobs
