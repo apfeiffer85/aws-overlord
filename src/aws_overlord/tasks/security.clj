@@ -30,15 +30,21 @@
   {
    "Version" "2012-10-17"
    "Statement" [{"Effect" "Allow"
-                 "Action" ["iam:CreateRole"
-                           "iam:CreateInstanceProfile"
+                 "Action" [
                            "iam:AddRoleToInstanceProfile"
-                           "iam:PassRole"
-                           "iam:ListServerCertificates"
-                           "iam:ListRoles"
+                           "iam:CreateInstanceProfile"
+                           "iam:CreateRole"
+                           "iam:DeleteInstanceProfile"
+                           "iam:DeleteRole"
+                           "iam:GetInstanceProfile"
                            "iam:ListRolePolicies"
+                           "iam:ListRoles"
+                           "iam:ListServerCertificates"
+                           "iam:PassRole"
                            ; FIXME: PutRolePolicy allows privilege escalation!
-                           "iam:PutRolePolicy"]
+                           "iam:PutRolePolicy"
+                           "iam:RemoveRoleFromInstanceProfile"
+                           ]
                  "Resource" "*"}
                 {"Effect" "Allow"
                  "Action" "ec2:*"
