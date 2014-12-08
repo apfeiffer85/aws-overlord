@@ -29,14 +29,19 @@ Overlord provides a RESTful API for accounts that expects the following format:
 
 ``POST`` ing this to ``/accounts/foo`` will set up the Account *foo* by performing the following steps:
 
-- Create Key Pair *overlord*
-- Set up a SAML Provider
-- Create IAM roles and polices for
-    - Administrator
-    - PowerUser
-    - ReadOnly
-- Create a Hosted Zone in Route 53
-- Perform the network setup as described :doc:`here <network-setup>`.
+    - Create Key Pair *overlord*
+
+    - Set up a SAML Provider
+
+    - Create IAM roles and polices for
+
+      - Administrator
+      - PowerUser
+      - ReadOnly
+
+    - Create a Hosted Zone in Route 53
+
+    - Perform the network setup as described :doc:`here <network-setup>`.
 
 
 

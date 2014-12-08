@@ -52,12 +52,13 @@ Releasing
 .. code-block:: bash
 
     $ lein test
+    $ VERSION=0.2
+    $ echo $VERSION > version
     $ lein uberjar
-    $ # update version in docs/conf.py
-    $ git tag 0.2
+    $ git tag $VERSION
     $ git push --tags
-    $ docker build -t zalando/overlord:0.2 .
-    $ docker push zalando/overlord:0.2
+    $ docker build -t zalando/overlord:$VERSION .
+    $ docker push zalando/overlord:$VERSION
 
 Documentation
 =============

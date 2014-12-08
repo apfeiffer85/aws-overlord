@@ -1,4 +1,4 @@
-(defproject aws-overlord "0.2.0-SNAPSHOT"
+(defproject aws-overlord (slurp "VERSION")
   :description "An AWS account coordinator."
 
   :url "https://github.com/zalando/aws-overlord"
@@ -50,8 +50,6 @@
              :no-log {:dependencies [[org.slf4j/slf4j-nop "1.7.7"]]}
 
              :dev {:dependencies [[javax.servlet/servlet-api "2.5"]]}
-
-             ; TODO :run?!
 
              :test [:log]
 
