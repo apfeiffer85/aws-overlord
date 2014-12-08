@@ -16,6 +16,7 @@
     (do
       (log/info "Creating SAML provider")
       (iam/create-samlprovider :name "Shibboleth"
+                               ; TODO make configurable!
                                :saml-metadata-document (slurp "https://idp.zalando.net/shibboleth")))
     (log/info "SAML provider already exists")))
 

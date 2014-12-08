@@ -53,6 +53,7 @@ Releasing
 
     $ lein test
     $ lein uberjar
+    $ # update version in docs/conf.py
     $ git tag 0.2
     $ git push --tags
     $ docker build -t zalando/overlord:0.2 .

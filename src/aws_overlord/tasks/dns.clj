@@ -19,5 +19,6 @@
     (log/info "Hosted zone" name "already exists")))
 
 (defn run [{team-name :name}]
+  ; TODO configurable!
   (create-hosted-zone (str team-name ".aws.zalando."))
   (create-hosted-zone (str team-name ".aws.zalando.net.")))
