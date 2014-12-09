@@ -53,7 +53,9 @@
 
              :dev {:dependencies [[javax.servlet/servlet-api "2.5"]]}
 
-             :test [:log {:dependencies [[org.clojars.runa/conjure "2.1.3"]]}]
+             :test [:log {:dependencies [[org.clojars.runa/conjure "2.1.3"]
+                                         [midje "1.6.3"]
+                                         [clj-http "1.0.1"]]}]
 
              :repl [:no-log]
 

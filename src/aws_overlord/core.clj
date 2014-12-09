@@ -3,7 +3,6 @@
   (:require [com.stuartsierra.component :as component :refer [using]]
             [environ.core :refer [env]]
             [aws-overlord.aws]
-            ; needed for set-root-unwrapping!
             [aws-overlord.api.http-server :refer [new-http-server]]
             [aws-overlord.api.router :refer [new-router]]
             [aws-overlord.data.storage :refer [new-storage]]

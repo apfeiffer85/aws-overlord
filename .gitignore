@@ -15,6 +15,3 @@ pom.xml.asc
 
 # generated documentation
 /docs/_build
-
-# generated
-/resources/generated.json

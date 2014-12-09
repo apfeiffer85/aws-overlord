@@ -18,7 +18,7 @@
   (stop [this]
     (if server
       (.stop server)
-      this)))
+      (dissoc this :server))))
 
 (defn ^HTTPServer new-http-server [{:keys [port] :or {port 8080}}]
   (map->HTTPServer {:port (if (number? port) port (Integer/parseInt port))}))

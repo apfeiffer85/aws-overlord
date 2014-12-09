@@ -2,7 +2,6 @@
   (:import (com.amazonaws AmazonServiceException))
   (:require [clojure.string :refer [capitalize]]
             [clojure.data.json :as json]
-            [amazonica.aws.ec2 :as ec2]
             [amazonica.aws.cloudformation :as cf]
             [clojure.tools.logging :as log]))
 
@@ -279,13 +278,8 @@
 (defn- stack-status [name]
   (-> (cf/describe-stacks :stack-name name) first :stack-status))
 
-(defn- delete-default-vpc []
-  (doseq [vpc-id (map :vpc-id (ec2/describe-vpcs :filters [{:name "isDefault" :values ["true"]}]))]
-    (log/info "Deleting default vpc" vpc-id)
-    (ec2/delete-vpc :vpc-id vpc-id)))
-
-(defn run [account network]
-  ; TODO detach igw, delete igw, ... (delete-default-vpc)
+(defn run [account network & {:keys [sleep-timeout]
+                              :or {sleep-timeout 5000}}]
   (let [stack-name "overlord"]
     (if-not (stack-exists? stack-name)
       (do
@@ -297,7 +291,7 @@
             (condp = status
               "CREATE_IN_PROGRESS" (do
                                      (log/info "Waiting for stack creation, current status is" status)
-                                     (Thread/sleep 5000)
+                                     (Thread/sleep sleep-timeout)
                                      (recur v))
               "CREATE_COMPLETE" (log/info "Stack creation finished")
               (throw (IllegalStateException. (str "Stack creation failed with status " status)))))))

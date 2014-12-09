@@ -1,7 +1,9 @@
 (ns aws-overlord.tasks.networking-test
-  (:require [clojure.test :refer :all]
-            [aws-overlord.tasks.networking :refer :all]
-            [clojure.data.json :refer [pprint write-str]]))
+  (:import (com.amazonaws AmazonServiceException))
+  (:require [midje.sweet :refer :all]
+            [clojure.test :refer :all]
+            [amazonica.aws.cloudformation :as cf]
+            [aws-overlord.tasks.networking :refer :all]))
 
 (def network
   {:cidr-block "10.2.0.0/19"
@@ -42,6 +44,37 @@
               :cidr-block "10.2.10.0/24"}]})
 
 (deftest test-generate-template
-  (let [data (generate-template {:name "asa"} network)]
-    (spit "resources/generated.json" (with-out-str (pprint data :escape-slash false)))))
+  (let [template (generate-template {:name "team"} network)]
+    ; TODO better assertions
+    (is (not (empty? template)))))
 
+(deftest test-generate-template-no-name-servers
+  (let [template (generate-template {:name "team"} (update-in network [:name-servers] empty))]
+    ; TODO better assertions
+    (is (not (empty? template)))))
+
+(deftest test-networking
+  (fact "Missing stack should be created"
+        (run {:name "team"} network :sleep-timeout 100) => nil
+        (provided
+          (cf/describe-stacks :stack-name "overlord") =streams=> [[]
+                                                                  [{:stack-name "overlord"
+                                                                    :stack-status "CREATE_IN_PROGRESS"}]
+                                                                  [{:stack-name "overlord"
+                                                                    :stack-status "CREATE_COMPLETE"}]]
+          (cf/create-stack :stack-name anything :template-body anything) => {})))
+
+(deftest test-networking-stack-exists
+  (fact "Existing stack shouldn't be touched"
+        (run {:name "team"} network) => nil
+        (provided
+          (cf/describe-stacks :stack-name "overlord") => [{:stack-name "overlord"}])))
+
+(deftest test-networking-failed
+  (fact "A failed stack creation should be reported"
+        (run {:name "team"} network) => (throws IllegalStateException)
+        (provided
+          (cf/describe-stacks :stack-name "overlord") =streams=> [[]
+                                                                  [{:stack-name "overlord"
+                                                                    :stack-status "CREATE_FAILED"}]]
+          (cf/create-stack :stack-name anything :template-body anything) => {})))

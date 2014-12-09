@@ -5,7 +5,6 @@
             [compojure.api.routes :as routes]
             [ring.util.http-response :refer :all]
             [schema.core :as s]
-            [aws-overlord.logging :refer [with-mdc]]
             [aws-overlord.data.storage :refer :all]
             [aws-overlord.logic.accounts :as accounts]
             [aws-overlord.net :refer :all]
