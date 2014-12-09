@@ -68,5 +68,4 @@ Building HTML documentation locally:
 TODO
 ====
 
-- AWS mocks for testing
 - multi-region support
