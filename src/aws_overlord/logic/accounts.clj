@@ -55,14 +55,14 @@
                    generate-subnets-in-az (partial generate-subnets availability-zones)]
                (assoc network
                       :private-key (create-key-pair)
-                      :subnets (apply concat (mapv generate-subnets-in-az cidr-blocks))))))
+                      :subnets (set (apply concat (mapv generate-subnets-in-az cidr-blocks)))))))
 
 (defn prepare [name {:keys [networks] :as account}]
-  (login-to account
-            (assoc account
-                   :name name
-                   :networks (mapv update-network networks)
-                   :aws-id (get-account-id))))
+  (let [account (assoc account :name name)]
+    (login-to account
+              (assoc account
+                     :networks (mapv update-network networks)
+                     :aws-id (get-account-id)))))
 
 (defmacro background [& body]
   `(future
@@ -73,8 +73,8 @@
 
 (defn configure [{:keys [networks] :as account} existing-accounts]
   (background
+    (log/info "Configuring account" (:name account))
     (login-to account
-              (log/info "Configuring account" (:name account))
               (log/info "Performing account-wide actions")
               (security/run account)
               (dns/run account))

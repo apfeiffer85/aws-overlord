@@ -13,7 +13,7 @@
         (config/parse config ["http" "db"]) => {:http {:port "8080"}
                                                 :db {:port "5435"
                                                      :username "user"}})
-  
+
   (fact "Config parsing without matches"
         (config/parse config ["foo" "bar"]) => {:foo {}
                                                 :bar {}})
