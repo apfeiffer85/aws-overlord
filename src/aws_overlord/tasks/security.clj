@@ -29,34 +29,44 @@
 
 (def ^:private power-user-policy
   {
-   "Version" "2012-10-17"
    "Statement" [{"Effect" "Allow"
-                 "Action" [
-                           "iam:AddRoleToInstanceProfile"
+                 "Resource" "*"
+                 "Action" ["iam:CreateRole"
                            "iam:CreateInstanceProfile"
-                           "iam:CreateRole"
-                           "iam:DeleteInstanceProfile"
-                           "iam:DeleteRole"
-                           "iam:GetInstanceProfile"
-                           "iam:ListRolePolicies"
-                           "iam:ListRoles"
-                           "iam:ListServerCertificates"
+                           "iam:AddRoleToInstanceProfile"
                            "iam:PassRole"
+                           "iam:ListVirtualMFADevices"
+                           "iam:ListUsers"
+                           "iam:ListUserPolicies"
+                           "iam:ListSigningCertificates"
+                           "iam:ListServerCertificates"
+                           "iam:ListSAMLProviders"
+                           "iam:ListRoles"
+                           "iam:ListRolePolicies"
+                           "iam:ListMFADevices"
+                           "iam:ListInstanceProfilesForRole"
+                           "iam:ListInstanceProfiles"
+                           "iam:ListGroupsForUser"
+                           "iam:ListGroups"
+                           "iam:ListGroupPolicies"
+                           "iam:ListAccountAliases"
+                           "iam:ListAccessKeys"
+                           "iam:GetAccountSummary"
+                           "iam:GetInstanceProfile"
+                           "iam:GetLoginProfile"
                            ; FIXME: PutRolePolicy allows privilege escalation!
-                           "iam:PutRolePolicy"
-                           "iam:RemoveRoleFromInstanceProfile"
-                           ]
-                 "Resource" "*"}
+                           "iam:PutRolePolicy"]}
                 {"Effect" "Allow"
-                 "Action" "ec2:*"
+                 "Resource" "*"
                  "Condition" {"ForAnyValue:StringLike" {"ec2:Region" ["eu-central-1"
                                                                       "eu-west-1"]}}
-                 "Resource" "*"}
+                 "Action" "ec2:*"}
                 {"Effect" "Allow"
                  "NotAction" ["ec2:*"
                               "iam:*"]
                  "Resource" "*"}
                 {"Effect" "Deny"
+                 "Resource" "*"
                  "Action" ["ec2:DeleteNetworkAcl"
                            "ec2:DeleteRoute"
                            "ec2:DeleteRouteTable"
@@ -65,8 +75,8 @@
                            "ec2:DeleteVpcPeeringConnection"
                            "ec2:DeleteVpnConnection"
                            "ec2:DeleteVpnConnectionRoute"
-                           "ec2:DeleteVpnGateway"]
-                 "Resource" "*"}]
+                           "ec2:DeleteVpnGateway"]}]
+   "Version" "2012-10-17"
    })
 
 (def ^:private read-only-policy
@@ -142,11 +152,11 @@
       false)))
 
 (defn- role-policy-document [account-id]
-  {"Version" "2012-10-17",
-   "Statement" [{"Sid" "",
-                 "Effect" "Allow",
-                 "Principal" {"Federated" (str "arn:aws:iam::" account-id ":saml-provider/Shibboleth")},
-                 "Action" "sts:AssumeRoleWithSAML",
+  {"Version" "2012-10-17"
+   "Statement" [{"Sid" ""
+                 "Effect" "Allow"
+                 "Principal" {"Federated" (str "arn:aws:iam::" account-id ":saml-provider/Shibboleth")}
+                 "Action" "sts:AssumeRoleWithSAML"
                  "Condition" {"StringEquals" {"SAML:aud" "https://signin.aws.amazon.com/saml"}}}]
    })
 
