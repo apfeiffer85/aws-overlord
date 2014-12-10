@@ -22,6 +22,7 @@ printf ${version} > VERSION
 git add VERSION
 
 git commit -m "Bumped version to $version"
+git push
 
 lein clean
 lein test
@@ -29,7 +30,7 @@ lein test
 lein uberjar
 
 git tag ${version}
-git push --follow-tags
+git push --tags
 
 docker build -t zalando/overlord:${version} .
 docker push zalando/overlord:${version}
