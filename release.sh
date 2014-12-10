@@ -19,7 +19,7 @@ lein clean
 lein test
 lein uberjar
 
-lein change version ${version}
+lein set-version ${version}
 git add project.clj
 
 printf ${version} > VERSION

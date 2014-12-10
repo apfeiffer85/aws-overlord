@@ -30,7 +30,8 @@
                  [org.clojure/java.jdbc "0.3.6"]
                  [java-jdbc/dsl "0.1.1"]]
 
-  :plugins [[lein-cloverage "1.0.2"]]
+  :plugins [[lein-cloverage "1.0.2"]
+            [lein-set-version "0.4.1"]]
 
   :release-tasks [["vcs" "assert-committed"]
                   ["change" "version" "leiningen.release/bump-version" "release"]
