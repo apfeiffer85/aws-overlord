@@ -15,6 +15,10 @@ version=$1
 
 lein vcs assert-committed
 
+lein clean
+lein test
+lein uberjar
+
 lein change version ${version}
 git add project.clj
 
@@ -23,11 +27,6 @@ git add VERSION
 
 git commit -m "Bumped version to $version"
 git push
-
-lein clean
-lein test
-
-lein uberjar
 
 git tag ${version}
 git push --tags
