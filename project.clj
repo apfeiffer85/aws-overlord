@@ -1,4 +1,4 @@
-(defproject aws-overlord "0.4"
+(defproject aws-overlord "0.5"
   :description "An AWS account coordinator."
 
   :url "https://github.com/zalando/aws-overlord"
