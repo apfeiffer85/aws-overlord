@@ -20,5 +20,6 @@
       (.stop server)
       (dissoc this :server))))
 
-(defn ^HTTPServer new-http-server [{:keys [port] :or {port 8080}}]
+(defn ^HTTPServer new-http-server [{:keys [port] :or {port 8080} :as config}]
+  (log/info "Configuring http server with" config)
   (map->HTTPServer {:port (if (number? port) port (Integer/parseInt port))}))

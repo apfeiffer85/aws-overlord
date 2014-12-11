@@ -112,17 +112,17 @@
 (deftest test-accounts-configure
   (let [account (assoc account :name "team")]
     (fact "Configure should execute tasks in background"
-          (deref (accounts/configure account [account])) => nil
+          (deref (accounts/configure account [account] {:dns {}})) => nil
           (provided
             (security/run account) => nil
-            (dns/run account) => nil
+            (dns/run account {}) => nil
             (networking/run account anything) => nil :times 2
             (peering/run account anything [account]) => nil :times 2))
     (let [account (update-in account [:networks] empty)]
       (fact "Accounts without networks should skip region wide configurations"
-            (deref (accounts/configure account [])) => nil
+            (deref (accounts/configure account [] {:dns {}})) => nil
             (provided
               (security/run account) => nil
-              (dns/run account) => nil
+              (dns/run account {}) => nil
               (networking/run account anything) => nil :times 0
               (peering/run account anything []) => nil :times 0)))))

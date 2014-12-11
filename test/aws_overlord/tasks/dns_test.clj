@@ -11,7 +11,7 @@
     (stubbing
       [route53/list-hosted-zones [{:name "bar.aws.zalando."}
                                   {:name "bar.aws.zalando.net."}]]
-      (dns/run {:name "foo"})
+      (dns/run {:name "foo"} {:domains "aws.zalando.,aws.zalando.net."})
       (verify-nth-call-args-for-indices 0 route53/create-hosted-zone [0 1] :name "foo.aws.zalando.")
       (verify-nth-call-args-for-indices 1 route53/create-hosted-zone [0 1] :name "foo.aws.zalando.net.")
       (verify-call-times-for route53/create-hosted-zone 2))))
@@ -22,5 +22,5 @@
     (stubbing
       [route53/list-hosted-zones {:hosted-zones [{:name "foo.aws.zalando."}
                                                  {:name "foo.aws.zalando.net."}]}]
-      (dns/run {:name "foo"})
+      (dns/run {:name "foo"} {:domains "aws.zalando.,aws.zalando.net."})
       (verify-call-times-for route53/create-hosted-zone 0))))

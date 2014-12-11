@@ -171,9 +171,9 @@
 (defn- nat-instance [availability-zone subnet-id]
   {"Type" "AWS::EC2::Instance"
    "Properties" {"AvailabilityZone" availability-zone
-                 "DisableApiTermination" true
+                 "DisableApiTermination" false
                  "ImageId" "ami-30913f47"                   ; current version of amzn-ami-vpc-nat-pv AMI
-                 "InstanceType" "m1.small"
+                 "InstanceType" "m3.medium"                 ; TODO make configurable
                  "KeyName" "overlord"
                  "Monitoring" true
                  "SecurityGroupIds" [{"Ref" "NatSecurityGroup"}]

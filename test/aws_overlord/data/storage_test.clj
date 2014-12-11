@@ -41,7 +41,7 @@
 (def ^:dynamic *unit*)
 
 (defn- with-db [test]
-  (let [{config :db} (config/parse env ["db"])
+  (let [{config :db} (config/parse env [:db])
         storage (new-storage config)
         database (:database storage)]
     (jdbc/with-db-transaction

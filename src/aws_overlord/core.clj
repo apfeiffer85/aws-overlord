@@ -9,10 +9,10 @@
             [aws-overlord.config :as config]))
 
 (defn- new-system [config]
-  (let [{:keys [http db]} (config/parse config ["http" "db"])]
+  (let [{:keys [http db dns]} (config/parse config [:http :db :dns])]
     (component/system-map
       :http-server (using (new-http-server http) [:router])
-      :router (using (new-router) [:storage])
+      :router (using (new-router {:dns dns}) [:storage])
       :storage (new-storage db))))
 
 (defn -main [& args]

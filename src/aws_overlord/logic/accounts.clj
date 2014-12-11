@@ -71,13 +71,13 @@
        (catch Exception e#
          (log/error e# "Error in background thread")))))
 
-(defn configure [{:keys [networks] :as account} existing-accounts]
+(defn configure [{:keys [networks] :as account} existing-accounts {:keys [dns]}]
   (background
     (log/info "Configuring account" (:name account))
     (login-to account
               (log/info "Performing account-wide actions")
               (security/run account)
-              (dns/run account)
+              (dns/run account dns)
               (doseq [{:keys [region] :as network} networks]
                 (switch-to region
                            (log/info "Performing region-wide actions in" region)

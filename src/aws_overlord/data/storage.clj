@@ -136,7 +136,9 @@
                                   port 5432
                                   name "overlord"
                                   user "postgres"
-                                  password "postgres"}}]
+                                  password "postgres"}
+                             :as config}]
+  (log/info "Configuring storage with" config)
   (map->Storage {:database {:subprotocol protocol
                             :subname (str "//" host ":" port "/" name)
                             :user user

@@ -30,7 +30,7 @@
                           :vpn-routes [String]
                           :name-servers [String]}]})
 
-(defrecord Router [storage])
+(defrecord Router [config storage])
 
 (defn- outbound-subnet [subnet]
   (-> subnet
@@ -47,7 +47,7 @@
       (dissoc :id :key-id :access-key :aws-id)
       (update-in [:networks] (partial mapv outbound-network))))
 
-(defn- api-routes [{:keys [storage]}]
+(defn- api-routes [{:keys [storage config]}]
   (routes/with-routes
 
     (swaggered
@@ -75,7 +75,7 @@
         (let [existing-accounts (storage/all-accounts storage)]
           (insert-account storage (accounts/prepare name account))
           (let [new-account (account-by-name storage name)]
-            (accounts/configure new-account existing-accounts)
+            (accounts/configure new-account existing-accounts config)
             {:status 202
              :body (outbound new-account)})))
 
@@ -146,5 +146,6 @@
       (swagger-docs :title "Overlord")
       (exception-logging (api-routes router)))))
 
-(defn ^Router new-router []
-  (map->Router {}))
+(defn ^Router new-router [config]
+  (log/info "Configuring router with" config)
+  (map->Router {:config config}))
