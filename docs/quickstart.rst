@@ -60,7 +60,7 @@ db.password  no        postgres
 Setting up an Account
 =====================
 
-Create ``ccount.json``:
+Create ``account.json``:
 
 .. code-block:: json
 
