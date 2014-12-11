@@ -77,9 +77,9 @@
     (login-to account
               (log/info "Performing account-wide actions")
               (security/run account)
-              (dns/run account))
-    (doseq [{:keys [region] :as network} networks]
-      (switch-to region
-                 (log/info "Performing region-wide actions in" region)
-                 (networking/run account network)
-                 (peering/run account network existing-accounts)))))
+              (dns/run account)
+              (doseq [{:keys [region] :as network} networks]
+                (switch-to region
+                           (log/info "Performing region-wide actions in" region)
+                           (networking/run account network)
+                           (peering/run account network existing-accounts))))))
