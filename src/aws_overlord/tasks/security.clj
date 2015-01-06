@@ -54,6 +54,7 @@
                            "iam:GetAccountSummary"
                            "iam:GetInstanceProfile"
                            "iam:GetLoginProfile"
+                           "iam:GetRolePolicy"
                            ; FIXME: PutRolePolicy allows privilege escalation!
                            "iam:PutRolePolicy"]}
                 {"Effect" "Allow"
