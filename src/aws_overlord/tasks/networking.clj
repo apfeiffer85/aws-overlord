@@ -16,6 +16,8 @@
 (defn- vpc [team-name cidr-block]
   {"Type" "AWS::EC2::VPC"
    "Properties" {"CidrBlock" cidr-block
+                 "EnableDnsSupport" true
+                 "EnableDnsHostnames" false
                  "Tags" [{"Key" "Name"
                           "Value" team-name}]}
    })
