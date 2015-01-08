@@ -22,9 +22,10 @@
                           "Value" team-name}]}
    })
 
-(defn- dhcp-options [name-servers]
+(defn- dhcp-options [name-servers intern-domain]
   {"Type" "AWS::EC2::DHCPOptions"
    "Properties" {"DomainNameServers" name-servers
+                 "DomainName" intern-domain
                  "Tags" [{"Key" "Name"
                           "Value" "DNS"}]}
    })
@@ -238,10 +239,10 @@
     (apply merge-with deny-duplicate-keys
            (map (partial apply availability-zone) groups))))
 
-(defn- dhcp [name-servers]
+(defn- dhcp [name-servers intern-domain]
   (if (empty? name-servers)
     {}
-    {"DhcpOptions" (dhcp-options name-servers)
+    {"DhcpOptions" (dhcp-options name-servers intern-domain)
      "DhcpOptionsAssociation" (dhcp-options-association "Vpc" "DhcpOptions")}))
 
 (defn- vpn-connection-routes [vpn-routes]

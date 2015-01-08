@@ -36,6 +36,7 @@
                            "iam:CreateInstanceProfile"
                            "iam:DeleteInstanceProfile"
                            "iam:DeleteRole"
+                           "iam:DeleteRolePolicy"
                            "iam:List*"
                            "iam:Get*"
                            "iam:PassRole"
