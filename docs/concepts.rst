@@ -23,9 +23,7 @@ Overlord provides a RESTful API for accounts that expects the following format:
             "10.2.138.5",
             "10.2.139.5"
           ],
-          "intern-domain": [
-            "domain.aws"
-          ]
+          "intern-domain": "domain.aws"
         }
       ]
     }

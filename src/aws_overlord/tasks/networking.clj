@@ -250,7 +250,7 @@
                           [(str "VpnConnectionRoute" (inc index))
                            (vpn-connection-route "VpnConnection" cidr-block)]) vpn-routes)))
 
-(defn- resources [{:keys [name]} {:keys [cidr-block vpn-gateway-ip vpn-routes name-servers subnets]}]
+(defn- resources [{:keys [name]} {:keys [cidr-block vpn-gateway-ip vpn-routes name-servers intern-domain subnets]}]
   (merge-with deny-duplicate-keys
               {"CloudTrail" (cloud-trail)
                "Vpc" (vpc name cidr-block)
@@ -263,7 +263,7 @@
                "VpnGatewayAttachment" (vpn-gateway-attachment "VpnGateway")
                "CustomerGateway" (customer-gateway "Customer Gateway" vpn-gateway-ip)
                "VpnConnection" (vpn-connection "VPN Connection" "VpnGateway" "CustomerGateway")}
-              (dhcp name-servers)
+              (dhcp name-servers intern-domain)
               (vpn-connection-routes vpn-routes)
               (availability-zones subnets)))
 
