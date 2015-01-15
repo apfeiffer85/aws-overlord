@@ -22,7 +22,7 @@
                  [org.slf4j/jul-to-slf4j "1.7.7"]
                  [org.slf4j/jcl-over-slf4j "1.7.7"]
                  ; amazon aws (if upgrading, also check the joda-time version)
-                 [amazonica "0.2.30" :exclusions [joda-time commons-logging]]
+                 [amazonica "0.3.12" :exclusions [joda-time commons-logging]]
                  [joda-time "2.5"]
                  ; storage
                  [postgresql "9.3-1102.jdbc41"]
