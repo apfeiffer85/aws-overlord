@@ -182,7 +182,7 @@
                  "SecurityGroupIds" [{"Ref" "NatSecurityGroup"}]
                  "SourceDestCheck" false
                  "SubnetId" {"Ref" subnet-id}
-                 "Tenancy" "dedicated"
+                 "Tenancy" "default"
                  "Tags" [{"Key" "Name"
                           "Value" "NAT"}]}
    })
