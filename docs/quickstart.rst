@@ -89,7 +89,8 @@ Create ``account.json``:
             "10.2.137.5",
             "10.2.138.5",
             "10.2.139.5"
-          ]
+          ],
+          "intern-domain": "domain.aws"
         }
       ]
     }
