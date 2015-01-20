@@ -18,6 +18,7 @@ CREATE TABLE network (
   vpn_routes     TEXT [] NOT NULL,
   name_servers   TEXT [] NOT NULL,
   intern_domain  TEXT    NOT NULL,
+  ami_nat_image  TEXT    NOT NULL,
   account_id     INT     NOT NULL,
   FOREIGN KEY (account_id) REFERENCES account (id) ON DELETE CASCADE
 );

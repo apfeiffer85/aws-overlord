@@ -22,6 +22,7 @@
                     "10.200.0.0/20"]
    :name-servers   ["1.2.3.4"]
    :intern-domain  "internaldomain.aws"
+   :ami-nat-image "ami-30913f47"
    :private-key    "s3cr3t"
    :subnets        #{(new-subnet region "a" range 1)
                      (new-subnet region "b" range 2)

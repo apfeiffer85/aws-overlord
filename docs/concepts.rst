@@ -24,6 +24,7 @@ Overlord provides a RESTful API for accounts that expects the following format:
             "10.2.139.5"
           ],
           "intern-domain": "domain.aws"
+	  "ami_nat_image": "ami-30913f47"
         }
       ]
     }

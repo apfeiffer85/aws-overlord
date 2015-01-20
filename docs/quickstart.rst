@@ -91,6 +91,7 @@ Create ``account.json``:
             "10.2.139.5"
           ],
           "intern-domain": "domain.aws"
+	  "ami_nat_image": "ami-30913f47"
         }
       ]
     }

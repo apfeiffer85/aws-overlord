@@ -171,18 +171,18 @@
                           "Value" (subnet-name subnet)}]}
    })
 
-(defn- nat-instance [availability-zone subnet-id]
+(defn- nat-instance [availability-zone ami-nat-image subnet-id]
   {"Type" "AWS::EC2::Instance"
    "Properties" {"AvailabilityZone" availability-zone
                  "DisableApiTermination" false
-                 "ImageId" "ami-30913f47"                   ; current version of amzn-ami-vpc-nat-pv AMI
+                 "ImageId" ami-nat-image                    ; current version of amzn-ami-vpc-nat-pv AMI
                  "InstanceType" "m3.medium"                 ; TODO make configurable
                  "KeyName" "overlord"
                  "Monitoring" true
                  "SecurityGroupIds" [{"Ref" "NatSecurityGroup"}]
                  "SourceDestCheck" false
                  "SubnetId" {"Ref" subnet-id}
-                 "Tenancy" "default"
+                 "Tenancy" "default"                        ; disable Tenancy in case of costs.
                  "Tags" [{"Key" "Name"
                           "Value" "NAT"}]}
    })
@@ -195,14 +195,14 @@
 (defn- deny-duplicate-keys [& args]
   (throw (ex-info (str "Duplicate key for values: " args) {})))
 
-(defn- setup-public [availability-zone subnets]
+(defn- setup-public [availability-zone ami-nat-image subnets]
   (let [zone-index (zone-index availability-zone)]
     (merge-with deny-duplicate-keys
                 (mmap (juxt subnet-id new-subnet) subnets)
                 (mmap (juxt (partial subnet-prefix-route-id "Public")
                             (comp subnet-public-route-table-association subnet-id)) subnets)
                 (mmap (juxt nat-id
-                            (comp (partial nat-instance availability-zone) subnet-id)) subnets)
+                            (comp (partial nat-instance availability-zone ami-nat-image) subnet-id)) subnets)
                 {(str "NatEipAz" zone-index) (elastic-ip (str "NatAz" zone-index))})))
 
 (defn- setup-shared [availability-zone subnets]
@@ -227,17 +227,17 @@
                 (mmap (juxt (constantly (str "PrivateRouteTableAssociationAz" (zone-index availability-zone)))
                             (comp (partial subnet-route-table-association private-route-table) subnet-id)) subnets))))
 
-(defn- availability-zone [availability-zone subnets]
+(defn- availability-zone [availability-zone ami-nat-image subnets]
   (let [{:keys [public shared private]} (group-by :type subnets)]
     (merge-with deny-duplicate-keys
-                (setup-public availability-zone public)
+                (setup-public availability-zone ami-nat-image public)
                 (setup-shared availability-zone shared)
                 (setup-private availability-zone private))))
 
-(defn- availability-zones [subnets]
+(defn- availability-zones [subnets ami-nat-image]
   (let [groups (group-by :availability-zone subnets)]
     (apply merge-with deny-duplicate-keys
-           (map (partial apply availability-zone) groups))))
+           (map (fn [[az subnet]] (availability-zone az ami-nat-image subnet)) groups))))
 
 (defn- dhcp [name-servers intern-domain]
   (if (empty? name-servers)
@@ -250,7 +250,7 @@
                           [(str "VpnConnectionRoute" (inc index))
                            (vpn-connection-route "VpnConnection" cidr-block)]) vpn-routes)))
 
-(defn- resources [{:keys [name]} {:keys [cidr-block vpn-gateway-ip vpn-routes name-servers intern-domain subnets]}]
+(defn- resources [{:keys [name]} {:keys [cidr-block vpn-gateway-ip vpn-routes name-servers intern-domain ami-nat-image subnets]}]
   (merge-with deny-duplicate-keys
               {"CloudTrail" (cloud-trail)
                "Vpc" (vpc name cidr-block)
@@ -265,7 +265,7 @@
                "VpnConnection" (vpn-connection "VPN Connection" "VpnGateway" "CustomerGateway")}
               (dhcp name-servers intern-domain)
               (vpn-connection-routes vpn-routes)
-              (availability-zones subnets)))
+              (availability-zones subnets ami-nat-image)))
 
 (defn generate-template [account network]
   {"AWSTemplateFormatVersion" "2010-09-09"

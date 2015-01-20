@@ -18,6 +18,7 @@
                           :vpn-routes [String]
                           :name-servers [String]
                           :intern-domain String
+                          :ami-nat-image String
                           :subnets [{:type String
                                      :availability-zone String
                                      :cidr-block String}]}]})
@@ -30,7 +31,8 @@
                           :vpn-gateway-ip String
                           :vpn-routes [String]
                           :name-servers [String]
-                          :intern-domain String}]})
+                          :intern-domain String
+                          :ami-nat-image String}]})
 
 (defrecord Router [config storage])
 
